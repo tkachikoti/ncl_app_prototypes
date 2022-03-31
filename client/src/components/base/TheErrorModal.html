@@ -1,0 +1,55 @@
+<template>
+	<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalAppear" aria-hidden="true" data-backdrop="true" v-bind:style="{zIndex: '2000'}">
+	    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h4 class="modal-title" id="errorModalAppear">Error</h4>
+	                <button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="$store.commit('displayErrorModal', false)">
+	                    <i aria-hidden="true" class="fas fa-times"></i>
+	                </button>
+	            </div>
+	            <div class="modal-body">
+	                <div class="container-fluid">
+	                    <div class="row">
+	                        <div class="alert alert-warning col-sm-12">
+	                            <p>Please correct the following error(s):</p>
+	                            <ul>
+	                                <li v-for="errorsList in errors"><p><pre class="yccFontReset">{{errorsList}}</pre></p></li>
+	                            </ul>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn buttonPrimary center-block ripple" data-dismiss="modal" v-on:click="$store.commit('displayErrorModal', false)">Close</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+	    computed: {
+	    	errors: function () {
+	    		var errors = [];
+	    		var path = this.$route.path;
+                var regEx = {};
+                var errorsStore = this.$store.getters.systemData.errors;
+	    		for (var key in errorsStore) {
+                    if (errorsStore.hasOwnProperty(key)) {
+                    	if (path && path !== "/*") {
+	                    	regEx = new RegExp(path);
+	                        if (regEx.test(key)) {
+	                            errors.push(errorsStore[key]);
+	                        }
+	                    }
+                    }
+                }
+                if (errorsStore.serverMessage) {
+                	errors.push(errorsStore.serverMessage);
+                }
+                return errors;
+	    	}
+	    }
+	};
+</script>

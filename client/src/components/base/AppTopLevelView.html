@@ -1,0 +1,7 @@
+<template>
+	<div>
+		<transition :name="$store.getters.transitionName" mode="out-in">
+        	<router-view class="child-view"></router-view>
+        </transition>
+	</div>
+</template>

@@ -1,0 +1,105 @@
+<template>
+	<div>
+        <div class="form-margin-top-bottom-1_5em">
+            <canvas v-bind:id="signatureCanvasId" class="signature-pad"></canvas>
+        	<p class="inlineErrorMessage" v-if="error"><i class="fas fa-exclamation-triangle"></i> {{error}}</p>
+        </div>
+        <div class="row text-center div--topBottomMargin--1em">
+            <div class="col-sm-12 center-block">
+                <button class="btn buttonSecondaryBorderless ripple" v-on:click.prevent="clearCanvas"><i class="fas fa-eraser buttonIcon--margin"></i>Clear</button>
+            </div>
+        </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+            getter: String | Number,
+            setter: String,
+            storePropertyName: String,
+            storePath: String,
+            error: String
+        },
+        data: function () {
+            return {
+                canvas: {},
+                signaturePad: {}
+            };
+        },
+	    computed: {
+	    	signatureCanvasId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "signatureCanvas" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            vModel: {
+	    		get: function () {
+                    return this.getter;
+                },
+                set: function (input) {
+                    this.$store.commit(this.setter, {
+                    	key: this.storePropertyName,
+                    	value: input,
+                    	[this.storePropertyName]: input,
+                    	path: (this.storePath || "")
+                    });
+                }
+	    	}
+	    },
+	    methods: {
+            initialiseSignaturePad: function () {
+                var vm = this;
+              	if (document.getElementById(this.signatureCanvasId)) {
+	                this.canvas = document
+	                    .getElementById(this.signatureCanvasId);
+	                this.signaturePad = new SignaturePad(this.canvas, {
+                        onEnd: vm.updateVModel
+                    });
+	                window.addEventListener("resize", this.resizeCanvas);
+                    this.resizeCanvas();
+                    if (typeof this.vModel === "string") {
+    	                if (this.vModel.indexOf("data:image")>= 0) {
+    	                	this.signaturePad.fromDataURL(this.vModel);
+    	                }
+                    }
+	            }
+            },
+            updateVModel: function () {
+            	if (!this.signaturePad.isEmpty()) {
+            		this.vModel = this.signaturePad.toDataURL();
+            	}
+            },
+            resizeCanvas: function () {
+                var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+                this.canvas.width = this.canvas.offsetWidth * ratio;
+                this.canvas.height = this.canvas.offsetHeight * ratio;
+                this.canvas.getContext("2d").scale(ratio, ratio);
+                this.clearCanvas(); // otherwise isEmpty() might return incorrect value
+            },
+            clearCanvas: function () {
+                // Clears the canvas
+                this.signaturePad.clear();
+                this.vModel = "";
+            },
+            deactivateCanvas: function () {
+                // Clears the canvas
+                this.clearCanvas();
+                // Unbinds all event handlers
+                this.signaturePad.off();
+            }
+        },
+	    mounted: function () {
+	    	var vm = this;
+            this.$nextTick(function () {
+                this.initialiseSignaturePad();
+            });
+        },
+        beforeDestroy: function () {
+            if (Object.keys(this.signaturePad).length) {
+                this.deactivateCanvas();
+            }
+        }
+	};
+</script>

@@ -1,0 +1,46 @@
+<template>
+	<transition-group name="fade" mode="out-in">
+		<header class="mdc-top-app-bar bulk-action-top-app-bar" v-show="$store.getters.systemData.bulkActionArray.length" :key="$store.getters.systemData.bulkActionArray.length>0">
+			<div class="mdc-top-app-bar__row">
+				<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+					<button class="mdc-top-app-bar__navigation-icon" title="Cancel" v-on:click="cancelBulkAction"><i class="text--black fas fa-times"></i></button>
+					<span class="mdc-top-app-bar__title">{{$store.getters.systemData.bulkActionArray.length}} Selected</span>
+				</section>
+				<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+					<div class="dropdown" title="Action" v-if="bulkActionMenuArray.length">
+		                <button class="mdc-top-app-bar__action-item mdc-icon-button" type="button" id="bulkActionMenu" data-toggle="dropdown" aria-label="Bulk Action Menu" aria-haspopup="true" aria-expanded="false"><i class="text--black fas fa-ellipsis-v"></i></button>
+	                    <div class="dropdown-menu" aria-labelledby="bulkActionMenu" role="menu">
+	                        <template v-for="action in bulkActionMenuArray">
+	                            <a class="dropdown-item cursorPointer" v-on:keyup.enter="executeGoogleScriptRunner(action.scriptParams)" v-on:click="executeGoogleScriptRunner(action.scriptParams)"><i class="buttonIcon--margin" v-bind:class="action.menuIcon"></i> {{action.name}}</a>
+	                        </template>
+	                    </div>
+	                </div>
+				</section>
+			</div>
+		</header>
+	</transition-group>
+</template>
+<script type="text/javascript">
+	module.export = {
+	    props: {
+            bulkActionMenuArray: Array
+        },
+	    methods: {
+	    	cancelBulkAction: function () {
+	    		this.$store.commit("deleteBulkActionArray");
+	    	},
+	    	executeGoogleScriptRunner: function (scriptParams) {
+	    		scriptParams.serverMethod.parameters.bulkActionArray =
+	    			this.$store.getters.systemData.bulkActionArray;
+    			this.$store.dispatch("executeGoogleScriptRunner", [
+    				scriptParams
+    			]);
+    		}
+	    },
+	    mounted: function () {
+	    	this.$nextTick(function () {
+                mdc.autoInit();
+			});
+        }
+	};
+</script>

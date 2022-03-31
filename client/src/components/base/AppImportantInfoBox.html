@@ -1,0 +1,15 @@
+<template>
+	<div class="important-info-box">
+        <p class="important-info-box__text text-center" v-if="plainText"><i v-bind:class="icon"></i> {{plainText}}</p>
+        <span class="important-info-box__text text-center" v-else-if="html"><i v-bind:class="icon"></i> <span v-html="html"></span></span>
+    </div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		props: {
+			icon: String,
+			plainText: String,
+			html: String
+		}
+	};
+</script>

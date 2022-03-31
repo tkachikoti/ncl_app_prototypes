@@ -1,0 +1,47 @@
+<script type="text/javascript">
+	Vue.use(VueRouter);
+    var router = new VueRouter({
+        routes: [
+            {
+                path: "/index",
+                name: "Home",
+                component: StaffDataCaptureIndex
+            },
+            {
+                path: "*",
+                name: "Error",
+                component: StaffDataCaptureIndex
+            }
+
+        ],
+        mode: "history"
+    });
+    router.beforeEach(function (to, from, next) {
+        //console.log("router.beforeEach - to: " + JSON.stringify(to));
+        var transitionName = "";
+        if (to.path) {
+            if (to.path !== "/userCodeAppPanel" && to.path !== "/" &&
+                    to.path !== "/blank") {
+                transitionName = (to.path.split("/").length <
+                    from.path.split("/").length) ?
+                    "slide-right" :
+                    "slide-left";
+                store.commit("setTransitionName", transitionName);
+                store.commit("deleteErrors", from.path);
+                store.commit("setRoute", {to: to, from: from});
+                next();
+            } else if (to.path === "/userCodeAppPanel" &&
+                    store.getters.systemData.route.from.path ||
+                        to.path === "/" &&
+                            store.getters.systemData.route.from.path ||
+                        to.path === "/blank" &&
+                            store.getters.systemData.route.from.path) {
+                window.history.back();
+            } else {
+                next(false);
+            }
+        } else {
+            next(false);
+        }
+    });
+</script>

@@ -1,0 +1,570 @@
+<script type="text/javascript">
+    var appMixin = {
+        methods: {
+            validFileFormat: function (fileType, fileData) {
+                //console.log("validFileFormat - fileData: " + JSON.stringify(fileData));
+                if (fileType === "DOCUMENT") {
+                    if (fileData === "504B" || fileData === "2550" ||
+                        fileData === "D0CF" || fileData === "B11A" ||
+                        fileData === "6675" || fileData === "920D" ||
+                        fileData === "4920") {
+                        return true;
+                    }  else {
+                        return false;
+                    }
+                } else if (fileType === "IMAGE") {
+                    if (fileData === "FFD8" || fileData === "8950") {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            },
+            toggleModal: function (modalId) {
+                $("#" + modalId).modal("toggle");
+            },
+            doDatesOverlap: function (date1, date2) {
+                var doesDateOverlap = false
+                var date1 = [
+                    moment(date1.start),
+                    moment(date1.end)
+                ];
+                var date2 = [
+                    moment(date2.start),
+                    moment(date2.end)
+                ];
+                var range1  = moment.range(date1);
+                var range2 = moment.range(date2);
+                // has overlapping
+                if (range1.overlaps(range2)) {
+                    doesDateOverlap = true;
+                }
+                return doesDateOverlap;
+            },
+            convertArrayToObject: function (array, key) {
+                /**
+                 * Original code from: https://dev.to/afewminutesofcode/how-to-convert-an-array-into-an-object-in-javascript-25a4
+                 */
+                return array.reduce(function (accumulator, currentValue) {
+                    accumulator[currentValue[key]] = currentValue;
+                    return accumulator;
+                }, {});
+            },
+            generateColorsForChart: function (numberOfColors) {
+                var randomColor = "";
+                var background = [];
+                var backgroundAlpha = 0.5;
+                var border = [];
+                var borderAlpha = 1;
+                if (numberOfColors > 1) {
+                    for (var i = 0; i < numberOfColors; i++) {
+                        randomColor =
+                            chroma.random()["_rgb"].filter(function (element) {
+                                return element > 1;
+                            }).join();
+                        background.push(
+                            "rgba(" + randomColor + "," + backgroundAlpha + ")"
+                        );
+                        border.push(
+                            "rgba(" + randomColor + "," + borderAlpha + ")"
+                        );
+                    }   
+                } else {
+                    randomColor =
+                        chroma.random()["_rgb"].filter(function (element) {
+                            return element > 1;
+                        }).join();
+                    background =
+                        "rgba(" + randomColor + "," + backgroundAlpha + ")";
+                    border =
+                        "rgba(" + randomColor + "," + borderAlpha + ")";
+                }
+                return {
+                    background: background,
+                    border: border
+                };
+            },
+            getFixedPointNotation: function (number, decimalPlaces) {
+                decimalPlaces = (typeof decimalPlaces === "number") ?
+                    decimalPlaces : 
+                    2;
+                return Number.parseFloat(number).toFixed(decimalPlaces);
+            },
+            isInputValueValid: function (input) {
+                var isInputValueValid = false;
+                switch (input.primitive) {
+                    case "string" || "number":
+                        isInputValueValid = (
+                            typeof input.value === input.primitive &&
+                            input.value
+                        ) ? true : false;
+                        break;
+                    case "object":
+                        isInputValueValid = (
+                            typeof input.value === input.primitive &&
+                            input.value.length
+                        ) ? true : false;
+                        break;
+                    case "boolean":
+                        isInputValueValid =
+                            (typeof input.value === "boolean") ?
+                                true :
+                                false;
+                        break;
+                    default:
+                        isInputValueValid = false;
+                }
+                return isInputValueValid;
+            },
+            getRandomInt: function (max) {
+                max = max || 100;
+              return Math.floor(Math.random() * Math.floor(max));
+            },
+            getPercentageOfANumber: function (percentage, number, decimalPlaces) {
+                decimalPlaces = (typeof decimalPlaces === "number") ?
+                    decimalPlaces : 
+                    2;
+                var HUNDRED_PERCENT = 100;
+                var value = Number(number / HUNDRED_PERCENT) * percentage;
+                return Number.parseFloat(value).toFixed(decimalPlaces)
+            },
+            convertFractionToPercentage: function (a, b, decimalPlaces) {
+                decimalPlaces = (typeof decimalPlaces === "number") ?
+                    decimalPlaces : 
+                    2;
+                var HUNDRED_PERCENT = 100;
+                var value = Number((a * HUNDRED_PERCENT) / b);
+                return Number.parseFloat(value).toFixed(decimalPlaces)
+            },
+            getPercentageDifference: function (a, b, decimalPlaces) {
+                decimalPlaces = (typeof decimalPlaces === "number") ?
+                    decimalPlaces : 
+                    2;
+                var HUNDRED_PERCENT = 100;
+                var value = HUNDRED_PERCENT * Math.abs((a - b) / ((a + b)/2));
+                return parseFloat(
+                    Number(
+                        Math.round(parseFloat(value + 'e' + decimalPlaces)) +
+                            "e-" + decimalPlaces
+                    ).toFixed(decimalPlaces)
+                );
+            },
+            getStringFromOneDimensionalArray: function (array) {
+                var newString = "";
+                var arrayLength = array.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    if (i === 0 && arrayLength > 1) {
+                        newString += (typeof array[i] === "string") ?
+                            array[i] + ", ":
+                            "";
+                    } else if (i === 0 || i === arrayLength - 1) {
+                        newString += (typeof array[i] === "string") ?
+                            array[i] :
+                            "";
+                    } else {
+                        newString += (typeof array[i] === "string") ?
+                            array[i] + ", " :
+                            "";
+                    }
+                }
+                return newString;
+            },
+            sumIntegersInObject: function (obj, keys) {
+                var sum = 0;
+                var arrayLength = keys.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    if (Number(obj[keys[i]])) {
+                        sum += Number(obj[keys[i]]);
+                    }
+                }
+                return sum;
+            },
+            normaliseCamelCaseString: function (string) {
+                return this.capitaliseString(
+                    string.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                );
+            },
+            getResponseFromValueDataUsingInteger: function (integer, value) {
+                var valueData =
+                    this.$store.getters.getValueDataFromArray(value);
+                return (valueData.length) ?
+                    valueData.find(function(element) {
+                        return element.value === Number(integer);
+                    }).response :
+                    0;
+            },
+            replaceString: function (subject, stringToFind, replacement) {
+                // encode
+                var encodedSubject = encodeURIComponent(subject);
+                var encodedStringToFind = encodeURIComponent(stringToFind);
+                var modifiedString = "";
+                var regEx = new RegExp(encodedStringToFind, "gi");
+                modifiedString = encodedSubject.replace(regEx, function () {
+                    return replacement;
+                });
+                return decodeURIComponent(modifiedString);
+            },
+            getMinutesFromMilliseconds: function (timeInMilliseconds) {
+                var sixtyThousand = 60000;
+                return timeInMilliseconds / sixtyThousand;
+            },
+            getDateString: function (timeInMilliseconds) {
+                var dateString = "";
+                if (new Date(timeInMilliseconds).toString() !==
+                        "Invalid Date") {
+                    dateString = moment.tz(timeInMilliseconds, "Europe/London")
+                        .format("Do MMMM YYYY");
+                }
+                return dateString;
+            },
+            getTimeString: function (timeInMilliseconds) {
+                var timeString = ""
+                if (new Date(timeInMilliseconds).toString() !==
+                        "Invalid Date") {
+                    timeString = moment.tz(timeInMilliseconds, "Europe/London")
+                        .format("HH:MM:SS z");
+                }
+                return timeString;
+            },
+            getISOStringFromMilliseconds: function (dateInMilliseconds) {
+                var date = new Date(dateInMilliseconds);
+                return date.toISOString();
+            },
+            getOrdinalDate: function (time) {
+                return moment(time).format("LLLL");
+            },
+            groupObjectArray: function (array, groupSize) {
+                // declare variables
+                var initialObjectArrayGroup = [];
+                var finalObjectArrayGroup = [];
+                var arrayLengthOne = array.length;
+                for (var i = 0; i < arrayLengthOne; i++) {
+                    initialObjectArrayGroup.push(array[i]);
+                    if (initialObjectArrayGroup.length === groupSize) {
+                        finalObjectArrayGroup.push(
+                            initialObjectArrayGroup
+                        );
+                        initialObjectArrayGroup = [];
+                    }
+                }
+                if (initialObjectArrayGroup.length) {
+                    finalObjectArrayGroup.push(
+                        initialObjectArrayGroup
+                    );
+                }
+                return finalObjectArrayGroup;
+            },
+            generateAbbreviationForString: function (string) {
+                var characterSplitRegEx = /(?=(?:[\0-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/;
+                var words = string.split(" ");
+                var characterIndex = 0;
+                var characters ="";
+                var abbreviatedString = "";
+                var increment = 1;
+                if (words.length > 1) {
+                    for (var i = 0; i < words.length; i++) {
+                        abbreviatedString += words[i].toUpperCase()
+                            .charAt(characterIndex);
+                    }
+                } else {
+                    characters = string.split(characterSplitRegEx);
+                    if (characters.length > 6) {
+                       for (var i = 0; i < characters.length; i+=increment) {
+                            abbreviatedString += characters[i].toUpperCase();
+                            if (i > 5) {
+                                break;
+                            }
+                        }
+                    } else {
+                        abbreviatedString = string.toUpperCase();
+                    }
+                }
+                return abbreviatedString;
+            },
+            removeColumn: function (array, arrayOfColumnNames) {
+                // Declare and initiate variables
+                var updatedArray = this.copyObject(array);
+                var arrayLength = arrayOfColumnNames.length;
+                for (var i = 0; i < arrayLength; i+=1) {
+                    updatedArray.forEach(
+                        function (object) {
+                            delete object[arrayOfColumnNames[i]];
+                        }
+                    );
+                }
+                //console.info("removeColumn_ - updatedArray: " + JSON.stringify(updatedArray));
+                return updatedArray;
+            },
+            copyObject: function (objectData) {
+                try {
+                    return JSON.parse(JSON.stringify(objectData));
+                } catch (err) {
+                    console.error(err);
+                    return objectData;
+                }
+            },
+            capitaliseString: function (string) {
+                // Declare and initiate variables
+                //string = "Declare and initiate variables";
+                var array = string.trim().split(/\s+/);
+                var newString = "";
+                for (var i = 0; i < array.length; i+=1) {
+                    newString += array[i].charAt(0).toUpperCase() +
+                        array[i].slice(1).toLowerCase() + " ";
+                }
+                //console.info("newString: " + JSON.stringify(newString.trim()));
+                return newString.trim();
+            },
+            isDataModified: function (oldValue, newValue) {
+                var isDataModified = false;
+                var oldValueAsString = JSON.stringify(oldValue);
+                var newValueAsString = JSON.stringify(newValue);
+                if (oldValueAsString !== newValueAsString) {
+                    isDataModified = true;
+                }
+                return isDataModified;
+            },
+            dateTimeStringToMilliseconds: function (dateTimeString) {
+                var milliseconds = new Date(dateTimeString).getTime();
+                if (milliseconds === "Invalid Date") {
+                    milliseconds = "";
+                }
+                return milliseconds;
+            },
+            removeDuplicates: function (input) {
+                // Remove duplicates
+                var objectArray = this.sortArrayBy({
+                    referenceKey: input.referenceKey,
+                    objectArray: input.objectArray
+                });
+                for (var i = 0; i < objectArray.length; i+=1) {
+                    try {
+                        if (objectArray[i][input.referenceKey] ===
+                                objectArray[i + 1][input.referenceKey]) {
+                            objectArray.splice(i, 1);
+                            i -= 1;
+                        }
+                    } catch (err) {}
+                }
+                return objectArray;
+            },
+            sortArrayBy: function (input) {
+                // Declare and initiate variables
+                var ascendingSortOrder =
+                    (typeof input.ascendingSortOrder === "boolean") ?
+                    input.ascendingSortOrder :
+                    true;
+                var A = "";
+                var B = "";
+                var objectArray = this.copyObject(input.objectArray);
+                if (ascendingSortOrder) {
+                    objectArray = objectArray.sort(function(a, b) {
+                        if (a[input.referenceKey] !== undefined &&
+                                b[input.referenceKey] !== undefined &&
+                                input.referenceKey) {
+                            try {
+                                A = a[input.referenceKey].toUpperCase();
+                                B = b[input.referenceKey].toUpperCase();
+                            } catch (err) {
+                                A = a[input.referenceKey];
+                                B = b[input.referenceKey];
+                            }
+                            if (A < B) {
+                                return -1;
+                            }
+                            if (A > B) {
+                                return 1;
+                            }
+                            // referenceKey must be equal
+                            return 0;
+                        } else {
+                            try {
+                                A = a.toUpperCase();
+                                B = b.toUpperCase();
+                            } catch (err) {
+                                A = a;
+                                B = b;
+                            }
+                            if (A < B) {
+                                return -1;
+                            }
+                            if (A > B) {
+                                return 1;
+                            }
+                        }
+                    });
+                } else {
+                    objectArray = objectArray.sort(function(a, b) {
+                        if (a[input.referenceKey] !== undefined &&
+                                b[input.referenceKey] !== undefined &&
+                                input.referenceKey) {
+                            try {
+                                A = a[input.referenceKey].toUpperCase();
+                                B = b[input.referenceKey].toUpperCase();
+                            } catch (err) {
+                                A = a[input.referenceKey];
+                                B = b[input.referenceKey];
+                            }
+                            if (A > B) {
+                                return -1;
+                            }
+                            if (A < B) {
+                                return 1;
+                            }
+                            // referenceKey must be equal
+                            return 0;
+                        } else {
+                            try {
+                                A = a.toUpperCase();
+                                B = b.toUpperCase();
+                            } catch (err) {
+                                A = a;
+                                B = b;
+                            }
+                            if (A > B) {
+                                return -1;
+                            }
+                            if (A < B) {
+                                return 1;
+                            }
+                        }
+                    });
+                }
+                return objectArray;
+            },
+            groupBy: function (input) {
+                var group = [];
+                var match = false;
+                var groupObject = {};
+                for (var i = 0; i < input.objectArray.length; i++) {
+                    for (var j = 0; j < group.length; j++) {
+                        if (group[j][input.referenceKey] ===
+                                input.objectArray[i][input.referenceKey]) {
+                            delete input.objectArray[i][input.referenceKey];
+                            group[j].data.push(
+                                input.objectArray[i]
+                            );
+                            match = true;
+                            break;
+                        }
+                    }
+                    if (!match) {
+                        groupObject = {};
+                        groupObject[input.referenceKey] =
+                            input.objectArray[i][input.referenceKey];
+                        delete input.objectArray[i][input.referenceKey];
+                        groupObject.data = [input.objectArray[i]];
+                        group[group.length] = groupObject;
+                    } else {
+                        match = false;
+                    }
+                }
+                return group;
+            },
+            smoothScroll: function(id) {
+                $("html, body").animate({
+                    scrollTop: $("#" + id).offset().top
+                }, 800);
+                //$('html, body').scrollTop($("#errorReport").offset().top);
+            },
+            camelise: function (str) {
+                var regEx = /[^a-zA-Z0-9]+(.)/g;
+                if (str) {
+                    return str.toLowerCase().replace(
+                        regEx,
+                        function(match, chr) {
+                            return chr.toUpperCase();
+                        }
+                    );
+                }
+            },
+            processDashboardFiltersData: function (data, activeDataFilters, additionalFilters) {
+                var dataFilters = (Object.keys(activeDataFilters).length) ?
+                    activeDataFilters :
+                    additionalFilters;
+                var dataLength = data.length;
+                var dataObjectKeys = (Array.isArray(data) &&
+                        dataLength) ?
+                    Object.keys(data[0]) :
+                    [];
+                var dataObjectKeysLength = dataObjectKeys.length;
+                for (var i = 0; i < dataLength; i++) {
+                    for (var j = 0; j < dataObjectKeysLength; j++) {
+                        if (typeof data[i][dataObjectKeys[j]] !==
+                                "undefined" &&
+                                data[i][dataObjectKeys[j]] !== "" &&
+                                dataFilters[dataObjectKeys[j]]) {
+                            if (typeof dataFilters[dataObjectKeys[j]]
+                                        .values[data[i]
+                                    [dataObjectKeys[j]]] === "undefined") {
+                                dataFilters[dataObjectKeys[j]]
+                                    .values[data[i]
+                                        [dataObjectKeys[j]]] = true;
+                                dataFilters[dataObjectKeys[j]]
+                                    .values[data[i]
+                                        [dataObjectKeys[j]]] =
+                                            (dataFilters[dataObjectKeys[j]]
+                                                .hideNewValues) ?
+                                            false :
+                                            true;
+                            }
+                        }
+                    }
+                }
+                return dataFilters;
+            },
+            dashboardDataFilterCheckPassed: function (input) {
+                var dashboardDataFilterCheckPassed = true;
+                for (var i = 0; i < input.dataObjectKeysLength; i++) {
+                    if (input.dataFilters[input.dataObjectKeys[i]]) {
+                        if (!input.dataFilters[input.dataObjectKeys[i]]
+                                .values[input.data[input.dataObjectKeys[i]]] &&
+                                typeof input
+                                    .dataFilters[input.dataObjectKeys[i]]
+                                    .values[input.data[
+                                        input.dataObjectKeys[i]
+                                    ]] === "boolean") {
+                            dashboardDataFilterCheckPassed = false;
+                            break;
+                        }
+                    }
+                }
+                return dashboardDataFilterCheckPassed;
+            }
+        },
+        mounted: function () {
+            //var ripples = [];
+            var vm = this;
+            this.$nextTick(function () {
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip({
+                        container: "body",
+                        trigger: "hover",
+                        animation: true,
+                        delay: {
+                            "show": 100,
+                            "hide": 75 
+                        }
+                    });
+                });
+                $('[data-toggle="tooltip"]').on("click", function () {
+                    $(this).tooltip("dispose");
+                });
+                $('[data-toggle="tooltip"]').on("mouseleave", function () {
+                    $(this).tooltip("dispose");
+                });
+                /*
+                mdc.autoInit();
+                ripples =
+                    [].map.call(document.querySelectorAll(".btn"),
+                        function(element) {
+                            return new mdc.ripple.MDCRipple(element);
+                        });
+                */
+            });
+        },
+        beforeDestroy: function () {
+            $(this).tooltip("dispose");
+        }
+    };
+</script>

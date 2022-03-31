@@ -1,0 +1,91 @@
+<script type="text/javascript">
+    function googleScriptRunner (scripts) {
+        //console.log("googleScriptRunner - scripts: " + JSON.stringify(scripts));
+        google.script.run
+            .withSuccessHandler(organiseResponseData)
+            .withFailureHandler(organiseResponseData)
+            .executeScripts(scripts);
+    }
+    function organiseResponseData (response, userObject) {
+        //console.log("organiseResponseData - response: " + JSON.stringify(response));
+        var internalErrorMessage = "Sorry, a network error has occurred. " +
+            "Check to see if you’re on a bad or slow network connection.";
+        var serverThrowException = {};
+        try {
+            serverThrowException = JSON.parse(response.message);
+        } catch (err) {
+            serverThrowException.name = response.name;
+            serverThrowException.message = response.message;
+        }
+        if (response.success) {
+            for (var i = 0; i < response.store.dispatch.length; i++) {
+                //console.time(response.store.dispatch[i].dispatch);
+                store.dispatch(
+                    response.store.dispatch[i].dispatch,
+                    response.store.dispatch[i].data
+                );
+                //console.timeEnd(response.store.dispatch[i].dispatch);
+            }
+            for (var i = 0; i < response.store.commit.length; i++) {
+                //console.time(response.store.commit[i].commit);
+                store.commit(
+                    response.store.commit[i].commit,
+                    response.store.commit[i].data
+                );
+                //console.timeEnd(response.store.commit[i].commit);
+            }
+            //console.time("setActiveGoogleScripts");
+            store.commit(
+                "setActiveGoogleScripts",
+                response.workflowCompleted
+            );
+            //console.timeEnd("setActiveGoogleScripts");
+            
+            if (response.route) {
+                //console.time("response.route");
+                router.push(response.route);
+                //console.timeEnd("response.route");
+            }
+        } else {
+            //app.errorModalMessage = app.internalErrorMessage;
+            //app.logRunTimeError(app.user.email, response.name, response.message, response.stack);
+            try {
+                for (var i = 0; i < serverThrowException.store.dispatch.length; i++) {
+                    store.dispatch(
+                        serverThrowException.store.dispatch[i].dispatch,
+                        serverThrowException.store.dispatch[i].data
+                    );
+                }
+                for (var i = 0; i < serverThrowException.store.commit.length; i++) {
+                    store.commit(
+                        serverThrowException.store.commit[i].commit,
+                        serverThrowException.store.commit[i].data
+                    );
+                }
+                store.commit(
+                    "setActiveGoogleScripts",
+                    serverThrowException.workflowCompleted
+                );
+                if (serverThrowException.route) {
+                    router.push(serverThrowException.route);
+                }
+            } catch (err) {
+                store.commit("setErrors", {
+                    type: "serverMessage",
+                    message: (serverThrowException.name || "Error") + ": " +
+                        (serverThrowException.message ||
+                            internalErrorMessage) +
+                        " We apologise for the inconvenience and " +
+                        "suggest trying again in a few minutes. " +
+                        "If the issue persists, " +
+                        "please clear your browser cache and refresh your " +
+                        "browser window."
+                });
+                store.commit("deleteActiveGoogleScripts");
+            }
+        }
+        store.commit("setLoadCount", {
+            isLoading: false
+        });
+    }
+</script>

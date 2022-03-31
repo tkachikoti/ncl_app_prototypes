@@ -1,0 +1,43 @@
+<template>
+	<div>
+		<nav v-bind:id="breadcrumbId" aria-label="breadcrumb">
+			<ol class="breadcrumb justify-content-center" v-bind:class="{'d-none': !matchedRoutes.length}">
+				<li class="breadcrumb-item" v-for="route in matchedRoutes" v-bind:aria-current="($route.path.toLowerCase().indexOf(route.path)>=0) ? 'page' : ''"><a v-if="route.path" class="aYccStyleBlue font-weight-bold cursorPointer text--small" rel="noopener noreferrer" v-bind:href="'<domainAndAppName/>' + route.path" v-on:keyup.enter.prevent="$router.push(route.path)" v-on:click.prevent="$router.push(route.path)">{{route.name}}</a><a v-else class="text--small">{{route.name}}</a></li>
+			</ol>
+		</nav>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+	    computed: {
+	    	breadcrumbId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "breadcrumbId-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            matchedRoutes: function () {
+            	var matchedRoutes = [];
+            	var routes = (this.$route.matched.length) ?
+            		this.$route.matched :
+            		[];
+            	matchedRoutes.push({
+        			name: "Home",
+        			path: "/home"
+        		});
+            	routes.forEach(function (element, index, array) {
+            		matchedRoutes.push({
+            			name: element.name,
+            			path: (Number(index + 1) === array.length) ? 
+        					"" :
+        					element.path
+            		});
+            	});
+            	return (matchedRoutes.length >= 4) ?
+            		matchedRoutes :
+            		[];
+            }
+	    }
+	};
+</script>

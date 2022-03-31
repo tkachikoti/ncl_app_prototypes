@@ -1,0 +1,236 @@
+<template>
+    <div>
+        <AppStepper
+            scrollToId="TheImageCropperTabs"
+            v-bind:stepperData="stepperData"
+        ></AppStepper>
+        <div class="row">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8 mdCard">
+                <form>
+                    <div class="mb-5">
+                        <div class="text--margin textColorRed text-right">* Required</div>
+                        <label class="h4 label text--black" for="profilePictureUpload">Select an image:<span class="textColorRed">*</span></label>
+                        <input name="profilePictureUpload" type="file" class="form-control-file cursorPointer" id="imageUpload" ref="profilePictureUpload" accept="image/jpeg, image/png" v-on:change="validImageFile"/>
+                        <!-- invalid image file -->
+                        <p class="inlineErrorMessage" v-if="$store.getters.errors.imageFile"><i class="fas fa-exclamation-triangle"></i> {{$store.getters.errors.imageFile}}</p>
+                        <!--########################-->
+                        <transition-group name="fade" mode="out-in">
+                            <div :key="imageDataUncropped.length" v-if="imageDataUncropped">
+                                <div class="mt-3">
+                                    <img class="center-block img-fluid w-50 img--center" id="imagePreview" v-bind:src="imageDataUncropped" alt="Image Preview"/>
+                                </div>
+                            </div>
+                        </transition-group>
+                    </div>
+                    <div class="mb-5">
+                        <fieldset>
+                            <legend>Which component are you creating an image for?<span class="textColorRed">*</span></legend>
+                            <p class="inlineErrorMessage" v-if="$store.getters.errors.componentId"><i class="fas fa-exclamation-triangle"></i> {{$store.getters.errors.componentId}}</p>
+                            <div v-for="(component, index) in listOfImageSizesForComponents">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" v-bind:id="'radio-input-' + index" v-bind:aria-label="component.componentName" v-bind:value="component.id" v-bind:name="'radio-name-' + index" class="custom-control-input" v-model="componentId"/>
+                                    <label class="custom-control-label text--black" v-bind:for="'radio-input-' + index">{{component.componentName}}</label>
+                                </div>
+                                <br/>
+                            </div>
+                        </fieldset>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+        <div class="row text-center mb-5">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8">
+                <button class="mdc-button mdc-button--touch mdc-button--raised" v-on:click="$router.push('/section-two')">
+                    <div class="mdc-button__ripple"></div>
+                    <span class="mdc-button__label">Next</span><div class="mdc-button__touch"></div>
+                    <i class="fas fa-chevron-circle-right buttonIcon--margin"></i>
+                </button>
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+        mixins: [appMixin],
+		data: function () {
+	        return {
+                stepperData: {
+                    stepOne: {
+                        completed: this.$store.getters.imageCropper
+                            .sectionOneComplete,
+                        path: "/index",
+                        title: "Select"
+                    },
+                    stepTwo: {
+                        completed: this.$store.getters.imageCropper
+                            .sectionTwoComplete,
+                        path: "/section-two",
+                        title: "Crop and Download"
+                    }
+                }
+	        };
+	    },
+        computed: {
+            listOfImageSizesForComponents: function () {
+                return this.$store.getters.imageCropper
+                    .listOfImageSizesForComponents;
+            },
+            imageDataUncropped: {
+                get: function () {
+                    return this.$store.getters.imageCropper.imageDataUncropped;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            imageDataUncropped: input
+                        }
+                    );
+                }
+            },
+            contentType: {
+                get: function () {
+                    return this.$store.getters.imageCropper.contentType;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            contentType: input
+                        }
+                    );
+                }
+            },
+            componentId: {
+                get: function () {
+                    return this.$store.getters.imageCropper.componentId;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            componentId: input
+                        }
+                    );
+                }
+            },
+            sectionOneComplete: {
+                get: function () {
+                    return this.$store.getters.imageCropper.sectionOneComplete;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            sectionOneComplete: input
+                        }
+                    );
+                }
+            }
+        },
+        methods: {
+            validImageFile: function () {
+                var vm = this;
+                vm.imageDataUncropped = "";
+                vm.$store.commit("setErrors", {
+                    type: "imageFile",
+                    message: ""
+                });
+                var file = document.getElementById("imageUpload").files[0];
+                var fileReader = new FileReader();
+                var header = "";
+                var image = document.getElementById("imagePreview");
+                var canvas = null;
+                var array = [];
+                if (typeof file === "object") {
+                    fileReader.readAsArrayBuffer(file);
+                    fileReader.onloadend = function(event) {
+                        array = (
+                            new Uint8Array(event.target.result)
+                        ).subarray(0, 4);
+                        for (var i = 0; i < array.length; i++) {
+                            header += array[i].toString(16).toUpperCase();
+                        }
+                        if (vm.validFileFormat(
+                                "IMAGE", header.slice(0, 4))) {
+                            fileReader.readAsDataURL(file);
+                            fileReader.onloadend = function(event) {
+                                vm.imageDataUncropped = event.target.result;
+                                vm.contentType = event.target.result
+                                    .split(",")[0]
+                                    .split(";")[0]
+                                    .split(":")[1];
+                            }
+                        } else {
+                            vm.$store.commit("setErrors", {
+                                type: "imageFile",
+                                message: "Please ensure the image is the " +
+                                    "correct file format (i.e .png, .jpg, " +
+                                    "or .jpeg)"
+                            });
+                        }
+                    };
+                } else if (file) {
+                    vm.$store.commit("setErrors", {
+                        type: "imageFile", 
+                        message: "The file you have selected cannot " +
+                        "be opened, please choose another file"
+                    });
+                }
+            }
+        },
+        beforeRouteLeave (to, from, next) {
+            // called when the route that renders this component is about to
+            // be navigated away from.
+            // has access to `this` component instance.
+            // validation
+            if (to.path === "/section-two" ||
+                    to.path === "/section-three") {
+                // imageDataUncropped
+                if (!this.imageDataUncropped) {
+                    this.$store.commit("setErrors", {
+                        type: "imageFile",
+                        message:
+                            "Please select an image file from your device."
+                    });
+                } else {
+                    this.$store.commit("setErrors", {
+                        type: "imageFile",
+                        message: ""
+                    });
+                }
+                if (!this.componentId) {
+                    this.$store.commit("setErrors", {
+                        type: "componentId",
+                        message:
+                            "Please select an option."
+                    });
+                } else {
+                    this.$store.commit("setErrors", {
+                        type: "componentId",
+                        message: ""
+                    });
+                }
+                // Check errors
+                if (!this.$store.getters.errorsRegistered) {
+                    this.sectionOneComplete = true;
+                    next();
+                } else {
+                    next(false);
+                }
+            } else {
+                next();
+            }
+        },
+        mounted: function () {
+            this.$nextTick(function () {
+                mdc.autoInit();
+                const buttons = ".mdc-button";
+                const ripples = [].map.call(document.querySelectorAll(buttons),
+                    function(element) {
+                        return new mdc.ripple.MDCRipple(element);
+                    });
+            });
+        }
+	};
+</script>

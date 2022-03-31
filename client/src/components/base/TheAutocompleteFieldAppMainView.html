@@ -1,0 +1,8 @@
+<template>
+	<main class="main-content" id="main-content">
+		<transition :name="$store.getters.transitionName" mode="out-in">
+	        <router-view class="overflowHidden child-view container-fluid"></router-view>
+	    </transition>
+	    <the-single-instance-components/>
+	</main>
+</template>

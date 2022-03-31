@@ -1,0 +1,286 @@
+<template>
+    <div>
+        <h1>GO MOBILE STAFF PAGE - DATA CAPTURE TOOL</h1>
+        <div class="row text-center mb-5">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8 mdCard">
+                <div class="form-group">
+                    <AppInstructionBox
+                        html="<p>Please enter a GO Mobile staff page URL</p>">
+                    </AppInstructionBox>
+                </div>
+                <form>
+                    <div class="form-group">
+                        <label for="countryName" class="h4 label text--black">Which Country/Region is the Business/Organisation located?<span class="textColorRed">*</span></label>
+                        <AppAutocompleteTextField 
+                            :data="countryNamesAndCodesArray"
+                            autocomplete="country-name"
+                            maxlength="128"
+                            fieldName="country"
+                            id="countryName"
+                            required="required"
+                            :getter="selectedCountriesTextField"
+                            setter="setSelectedCountriesTextField"
+                            :error="$store.getters.errors.country">
+                        </AppAutocompleteTextField>
+                    </div>
+                    <div class="form-group">
+                        <p>{{$store.getters.selectedCountriesArray}}</p>
+                        <p>{{$store.getters.selectedCountriesArray.length}}</p>
+                        <AppChipSet
+                            :key="$store.getters.selectedCountriesArray.length"
+                            label="Selected Countries"
+                            :data="$store.getters.selectedCountriesArray"
+                            :getter="$store.getters.selectedCountriesArray"
+                            setter="setSelectedCountriesArray"
+                            storePropertyName="selectedCountriesArray"
+                            :error="$store.getters.errors.country">
+                        </AppChipSet>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+        mixins: [appMixin],
+		data: function () {
+	        return {
+                countryNamesAndCodesArray: [
+                    "Afghanistan",
+                    "Albania",
+                    "Algeria",
+                    "Andorra",
+                    "Angola",
+                    "Anguilla",
+                    "Antigua &amp; Barbuda",
+                    "Argentina",
+                    "Armenia",
+                    "Aruba",
+                    "Australia",
+                    "Austria",
+                    "Azerbaijan",
+                    "Bahamas",
+                    "Bahrain",
+                    "Bangladesh",
+                    "Barbados",
+                    "Belarus",
+                    "Belgium",
+                    "Belize",
+                    "Benin",
+                    "Bermuda",
+                    "Bhutan",
+                    "Bolivia",
+                    "Bosnia &amp; Herzegovina",
+                    "Botswana",
+                    "Brazil",
+                    "British Virgin Islands",
+                    "Brunei",
+                    "Bulgaria",
+                    "Burkina Faso",
+                    "Burundi",
+                    "Cambodia",
+                    "Cameroon",
+                    "Cape Verde",
+                    "Cayman Islands",
+                    "Chad",
+                    "Chile",
+                    "China",
+                    "Colombia",
+                    "Congo",
+                    "Cook Islands",
+                    "Costa Rica",
+                    "Cote D Ivoire",
+                    "Croatia",
+                    "Cruise Ship",
+                    "Cuba",
+                    "Cyprus",
+                    "Czech Republic",
+                    "Denmark",
+                    "Djibouti",
+                    "Dominica",
+                    "Dominican Republic",
+                    "Ecuador",
+                    "Egypt",
+                    "El Salvador",
+                    "Equatorial Guinea",
+                    "Estonia",
+                    "Ethiopia",
+                    "Falkland Islands",
+                    "Faroe Islands",
+                    "Fiji",
+                    "Finland",
+                    "France",
+                    "French Polynesia",
+                    "French West Indies",
+                    "Gabon",
+                    "Gambia",
+                    "Georgia",
+                    "Germany",
+                    "Ghana",
+                    "Gibraltar",
+                    "Greece",
+                    "Greenland",
+                    "Grenada",
+                    "Guam",
+                    "Guatemala",
+                    "Guernsey",
+                    "Guinea",
+                    "Guinea Bissau",
+                    "Guyana",
+                    "Haiti",
+                    "Honduras",
+                    "Hong Kong",
+                    "Hungary",
+                    "Iceland",
+                    "India",
+                    "Indonesia",
+                    "Iran",
+                    "Iraq",
+                    "Ireland",
+                    "Isle of Man",
+                    "Israel",
+                    "Italy",
+                    "Jamaica",
+                    "Japan",
+                    "Jersey",
+                    "Jordan",
+                    "Kazakhstan",
+                    "Kenya",
+                    "Kuwait",
+                    "Kyrgyz Republic",
+                    "Laos",
+                    "Latvia",
+                    "Lebanon",
+                    "Lesotho",
+                    "Liberia",
+                    "Libya",
+                    "Liechtenstein",
+                    "Lithuania",
+                    "Luxembourg",
+                    "Macau",
+                    "Macedonia",
+                    "Madagascar",
+                    "Malawi",
+                    "Malaysia",
+                    "Maldives",
+                    "Mali",
+                    "Malta",
+                    "Mauritania",
+                    "Mauritius",
+                    "Mexico",
+                    "Moldova",
+                    "Monaco",
+                    "Mongolia",
+                    "Montenegro",
+                    "Montserrat",
+                    "Morocco",
+                    "Mozambique",
+                    "Namibia",
+                    "Nepal",
+                    "Netherlands",
+                    "Netherlands Antilles",
+                    "New Caledonia",
+                    "New Zealand",
+                    "Nicaragua",
+                    "Niger",
+                    "Nigeria",
+                    "Norway",
+                    "Oman",
+                    "Pakistan",
+                    "Palestine",
+                    "Panama",
+                    "Papua New Guinea",
+                    "Paraguay",
+                    "Peru",
+                    "Philippines",
+                    "Poland",
+                    "Portugal",
+                    "Puerto Rico",
+                    "Qatar",
+                    "Reunion",
+                    "Romania",
+                    "Russia",
+                    "Rwanda",
+                    "Saint Pierre &amp; Miquelon",
+                    "Samoa",
+                    "San Marino",
+                    "Satellite",
+                    "Saudi Arabia",
+                    "Senegal",
+                    "Serbia",
+                    "Seychelles",
+                    "Sierra Leone",
+                    "Singapore",
+                    "Slovakia",
+                    "Slovenia",
+                    "South Africa",
+                    "South Korea",
+                    "Spain",
+                    "Sri Lanka",
+                    "St Kitts &amp; Nevis",
+                    "St Lucia",
+                    "St Vincent",
+                    "St. Lucia",
+                    "Sudan",
+                    "Suriname",
+                    "Swaziland",
+                    "Sweden",
+                    "Switzerland",
+                    "Syria",
+                    "Taiwan",
+                    "Tajikistan",
+                    "Tanzania",
+                    "Thailand",
+                    "Timor L'Este",
+                    "Togo",
+                    "Tonga",
+                    "Trinidad &amp; Tobago",
+                    "Tunisia",
+                    "Turkey",
+                    "Turkmenistan",
+                    "Turks &amp; Caicos",
+                    "Uganda",
+                    "Ukraine",
+                    "United Arab Emirates",
+                    "United Kingdom",
+                    "Uruguay",
+                    "Uzbekistan",
+                    "Venezuela",
+                    "Vietnam",
+                    "Virgin Islands (US)",
+                    "Yemen",
+                    "Zambia",
+                    "Zimbabwe"
+                ]
+	        };
+	    },
+        computed: {
+            selectedCountriesTextField: function () {
+                return this.$store.getters.selectedCountriesTextField;
+            },
+            selectedCountriesArray: function () {
+                return this.$store.getters.selectedCountriesArray;
+            },
+            selectedCountriesArrayRef: {
+                get: function () {
+                    return this.selectedCountriesArray;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setSelectedCountriesArray",
+                        input
+                    );
+                }
+            }
+        },
+        mounted: function () {
+            this.$nextTick(function () {
+                console.log(this.$store.getters.selectedCountriesArray)
+                console.log(this.$store.getters.selectedCountriesTextField)
+            });
+        }
+	};
+</script>

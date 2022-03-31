@@ -1,0 +1,108 @@
+<template>
+	<div>
+		<div v-bind:id="circularProgressBarId" class="circularProgressBar"></div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+			value: Number | String,
+			fontSize: String,
+            color: String,
+            trailColor: String,
+            strokeWidth: Number,
+            easing: String,
+            duration: Number,
+            low: Number,
+            medium: Number
+        },
+        data: function () {
+	        return {
+	        	circularProgressBar: {},
+	        	defaultColor: "#1d214f",
+	        	defaultTrailColor: "#21abe9",
+	        	defaultStrokeWidth: 4,
+	        	defaultEasing: "easeInOut",
+	        	defaultDuration: 1500
+	        };
+	    },
+	    computed: {
+	    	circularProgressBarId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "circularProgressBar" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            calculatedValue: function () {
+            	var value = Number(this.value) || 0;
+            	if (Number(value) > 1) {
+            		value = Math.floor(value) *
+            			Math.pow(10, - value.toString().length);
+            	}
+            	return value;
+            }
+	    },
+	    watch: {
+            calculatedValue: function (newValue, oldValue) {
+            	if (Object.keys(this.circularProgressBar).length) {
+            		this.circularProgressBar.animate(newValue);
+            		this.circularProgressBar.color = this.color;
+            	}
+            }
+        },
+	    mounted: function () {
+	    	var id = {};
+            this.$nextTick(function () {
+                // progressbar.js@1.0.0 version is used
+                // Docs: http://progressbarjs.readthedocs.org/en/1.0.0/
+                id = document.getElementById(this.circularProgressBarId);
+                this.circularProgressBar = 
+	                new ProgressBar.Circle(id, {
+	                    strokeWidth: this.strokeWidth ||
+	                    	this.defaultStrokeWidth,
+	                    easing: this.easing || this.defaultEasing,
+	                    duration: this.duration || this.defaultDuration,
+	                    color: this.color || this.defaultColor,
+	                    text: {
+							autoStyleContainer: false
+						},
+						from: {
+							color: "#49487c",
+							width: 4
+						},
+						to: {
+							color: this.color || this.defaultColor,
+							width: 4
+						},
+	                    trailColor: this.trailColor || this.defaultTrailColor,
+	                    trailWidth: 0.3,
+	                    svgStyle: null,
+	                    step: function(state, circle) {
+							circle.path.setAttribute("stroke", state.color);
+							circle.path.setAttribute(
+								"stroke-width",
+								state.width
+							);
+							var value = Math.round(circle.value() * 100);
+							if (value === 0) {
+								circle.setText('');
+							} else {
+								circle.setText(value);
+							}
+						}
+	                });
+				this.circularProgressBar.text.style.fontFamily =
+					'"Raleway", Helvetica, sans-serif';
+				this.circularProgressBar.text.style.fontSize =
+					this.fontSize || "1.5rem";
+                this.circularProgressBar.animate(this.calculatedValue);  // Number from 0.0 to 1.0
+            });
+        },
+        beforeDestroy: function () {
+            if (Object.keys(this.circularProgressBar).length) {
+                this.circularProgressBar.destroy();
+            }
+        }
+	};
+</script>

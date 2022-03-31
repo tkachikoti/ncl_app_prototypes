@@ -1,0 +1,15 @@
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        store: store,
+        router: router,
+        mounted: function() {
+            this.$nextTick(function () {
+                store.commit("setInitialState");
+                store.dispatch("setConnectionStatusListeners");
+                store.commit("setTimestamp");
+                router.push("<pathInfo/>");
+            });
+        }
+    });
+</script>

@@ -1,0 +1,36 @@
+<template>
+	<div>
+        <AppTabBar
+        	:tabBarData="tabBarData"
+        ></AppTabBar>
+        <transition :name="$store.getters.transitionName" mode="out-in">
+            <router-view class="child-view"></router-view>
+        </transition>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+	    computed: {
+	    	tabBarData: function () {
+                var vm = this;
+            	var tabBarData = {};
+            	var routes = (this.$route.matched.length) ?
+            		this.$route.matched :
+            		[];
+            	routes.forEach(function (element) {
+            		if (typeof element.parent === "object") {
+	        			if (Object.keys(element.parent.props).length) {
+	            			tabBarData =
+	            				(typeof element.parent.props.default
+	            					=== "object") ?
+		            				element.parent.props.default.tabBarData : 
+		            				{};
+	            		}
+	            	}
+            	});
+            	return tabBarData;
+            }
+	    }
+	};
+</script>

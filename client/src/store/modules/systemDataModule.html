@@ -1,0 +1,928 @@
+<script type="text/javascript">
+    var systemDataModule = {
+        strict: true,
+        state: {
+            initialState: {}, // initial state
+            activeGoogleScripts: [],
+            googleScriptsLog: [],
+            systemData: {
+                tableRowId: "",
+                appName: "<appName/>",
+                developmentMode: <devMode/>,
+                timestamp: {
+                    minute: 0,
+                    hour: 0,
+                    day: 0,
+                    month: 0,
+                    year: 0,
+                    now: 0,
+                    string: "",
+                    ISOString: "",
+                    dateTimeString: ""
+                },
+                errors: {},
+                fileManager: {
+                    upload: {
+                        fileUploadParams: {
+                            accept: "",
+                            fileType: ""
+                        },
+                        fileData: ""
+                    },
+                    delete: {
+                        fileData: ""
+                    }
+                },
+                connectionStatus: true,
+                snackBarMessages: [],
+                displayErrorModal: false,
+                loadCount: 0,
+                modalViewData: {},
+                backgroundLoad: false,
+                route: {
+                    to: {},
+                    from: {},
+                    upwardNavigation: ""
+                },
+                transitionName: "",
+                staffInfoData: [],
+                staffInfoCSVFriendlyData: [],
+                collatedData: {},
+                vueTableCache: [],
+                arrayIndicesByRefKey: {},
+                bulkActionArray: [],
+                internalErrorMessage: "Sorry, an error has occurred " +
+                    "and we're working to fix the problem. We'll be up " +
+                    "and running shortly."
+            }
+        },
+        mutations: {
+            setInitialState: function (state) {
+                Vue.set(
+                    state.initialState,
+                    "systemData",
+                    JSON.parse(
+                        JSON.stringify(state.systemData)
+                    )
+                );
+            },
+            setSystemData: function (state, data) {
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        Vue.set(
+                            state.systemData,
+                            key,
+                            data[key]
+                        );
+                    }
+                }
+                //console.log("store - state.user.email: " + JSON.stringify(state.user.email));
+            },
+            setDataFromArray: function (state, data) {
+                Vue.set(
+                    state.systemData,
+                    data.arrayName,
+                    data.arrayData
+                );
+                //console.log("store - setDataFromArray: " + JSON.stringify(data));
+            },
+            deleteSessionState: function (state, data) {
+                var initialState = JSON.parse(
+                    JSON.stringify(state.initialState)
+                );
+                for (var key in state) {
+                    if (state.hasOwnProperty(key)) {
+                        if (key !== "initialState" &&
+                                key !== "activeGoogleScripts" &&
+                                    key !== "googleScriptsLog") {
+                            try {
+                                Vue.set(
+                                    state,
+                                    key,
+                                    initialState[key]
+                                );
+                            } catch (e) {
+                                Vue.delete(
+                                    state,
+                                    key
+                                );
+                            }
+                        }
+                    }
+                }
+            },
+            setTimestamp: function (state) {
+                var date = new Date();
+                var minute = 0;
+                var hour = 0;
+                var day = 0;
+                var month = 0;
+                state.systemData.timestamp.minute = date.getUTCMinutes();
+                state.systemData.timestamp.hour = date.getUTCHours();
+                state.systemData.timestamp.day = date.getUTCDate();
+                state.systemData.timestamp.month = date.getUTCMonth() + 1;
+                state.systemData.timestamp.year = date.getUTCFullYear();
+                state.systemData.timestamp.now = date.getTime();
+                state.systemData.timestamp.string =
+                    new Date(date.getTime()).toString();
+                state.systemData.timestamp.ISOString =
+                    new Date(date.getTime()).toISOString();
+                if (state.systemData.timestamp.minute < 10) {
+                    minute = "0" + state.systemData.timestamp.minute;
+                } else {
+                    minute = state.systemData.timestamp.minute;
+                }
+                if (state.systemData.timestamp.hour < 10) {
+                    hour = "0" + state.systemData.timestamp.hour;
+                } else {
+                    hour = state.systemData.timestamp.hour;
+                }
+                if (state.systemData.timestamp.day < 10) {
+                    day = "0" + state.systemData.timestamp.day;
+                } else {
+                    day = state.systemData.timestamp.day;
+                }
+                if (state.systemData.timestamp.month < 10) {
+                    month = "0" + state.systemData.timestamp.month;
+                } else {
+                    month = state.systemData.timestamp.month;
+                }
+                state.systemData.timestamp.dateTimeString =
+                    state.systemData.timestamp.year + "-" +
+                    month + "-" +
+                    day + "T" +
+                    hour + ":" +
+                    minute;
+            },
+            setSnackBarMessages: function (state, data) {
+                if (data.message) {
+                    Vue.set(
+                        state.systemData.snackBarMessages,
+                        state.systemData.snackBarMessages.length,
+                        data.message
+                    );
+                }
+            },
+            deleteSnackBarMessages: function (state, data) {
+                Vue.delete(
+                    state.systemData.snackBarMessages,
+                    0
+                );
+            },
+            setErrors: function (state, data) {
+                //console.log("store - setErrors - data.type: " + JSON.stringify(data.type));
+                var path = router.currentRoute.path;
+                if (data.message) {
+                    if (data.type !== "serverMessage") {
+                        if (state.systemData.errors[path + "/" + data.type]) {
+                            Vue.set(
+                                state.systemData.errors,
+                                [path + "/" + data.type],
+                                data.message
+                            );
+                        } else {
+                            Vue.set(
+                                state.systemData.errors,
+                                [path + "/" + data.type],
+                                data.message
+                            );
+                        }
+                        if (!store.getters.displayErrorModal) {
+                            store.commit("displayErrorModal", true);
+                        }
+                    } else {
+                        Vue.set(
+                            state.systemData.errors,
+                            data.type,
+                            data.message
+                        );
+                        if (!store.getters.displayErrorModal) {
+                            store.commit("displayErrorModal", true);
+                        }
+                    }
+                } else if (!data.message) {
+                    if (state.systemData.errors[path + "/" + data.type]) {
+                        Vue.delete(
+                            state.systemData.errors,
+                            [path + "/" + data.type]
+                        );
+                    }
+                }
+            },
+            displayErrorModal: function (state, setting) {
+                Vue.set(state.systemData, "displayErrorModal", setting);
+                if (setting === false) {
+                    $("errorModal").modal("hide");
+                    if (state.systemData.errors.serverMessage) {
+                        Vue.delete(
+                            state.systemData.errors,
+                            "serverMessage"
+                        );
+                    }
+                } else {
+                    $("#errorModal").modal("show");
+                    $("#errorModal").on("hide.bs.modal", function (e) {
+                        store.commit("displayErrorModal", false);
+                    });
+                }
+            },
+            deleteErrors: function (state, path) {
+                var regEx = {};
+                for (var key in state.systemData.errors) {
+                    if (state.systemData.errors.hasOwnProperty(key)) {
+                        regEx = new RegExp(path);
+                        if (regEx.test(key)) {
+                            Vue.delete(
+                                state.systemData.errors,
+                                key
+                            );
+                        }
+                    }
+                }
+            },
+            setLoadCount: function (state, data) {
+                if (data.isLoading) {
+                    state.systemData.loadCount++;
+                } else if (state.systemData.loadCount > 0) {
+                    state.systemData.loadCount--;
+                    NProgress.inc(0.3);
+                }
+                if (data.backgroundLoad || state.systemData.backgroundLoad) {
+                    NProgress.configure({
+                        showSpinner: true
+                    });
+                    Vue.set(
+                        state.systemData,
+                        "backgroundLoad",
+                        true
+                    );
+                } else {
+                    NProgress.configure({
+                        showSpinner: false
+                    });
+                    Vue.set(
+                        state.systemData,
+                        "backgroundLoad",
+                        false
+                    );
+                }
+                if (state.systemData.loadCount &&
+                    !document.getElementById("nprogress")) {
+                    NProgress.start();
+                    NProgress.set(0.2);
+                } else if (!state.systemData.loadCount &&
+                    document.getElementById("nprogress")) {
+                    NProgress.done();
+                    Vue.set(
+                        state.systemData,
+                        "backgroundLoad",
+                        false
+                    );
+                }
+            },
+            deleteLoadCount: function (state) {
+                Vue.set(
+                    state.systemData,
+                    "loadCount",
+                    0
+                );
+            },
+            setModalViewData: function (state, data) {
+                Vue.set(
+                    state.systemData,
+                    "modalViewData",
+                    data
+                );
+            },
+            setRoute: function (state, data) {
+                Vue.set(
+                    state.systemData.route,
+                    "to",
+                    data.to
+                );
+                Vue.set(
+                    state.systemData.route,
+                    "from",
+                    data.from
+                );
+                //console.log("store - state.systemData.route: " + JSON.stringify(state.systemData.route));
+            },
+            setUpwardNavigation: function (state, value) {
+                var finalValue = 0;
+                if (Number(value)) {
+                    if (Number(state.systemData.route.upwardNavigation)) {
+                        finalValue = Number(state.systemData.route.upwardNavigation) + value;
+                        Vue.set(
+                            state.systemData.route,
+                            "upwardNavigation",
+                            finalValue
+                        );
+                    } else {
+                        Vue.set(
+                            state.systemData.route,
+                            "upwardNavigation",
+                            value
+                        );
+                    }
+                } else {
+                    Vue.set(
+                        state.systemData.route,
+                        "upwardNavigation",
+                        value || "/home"
+                    );
+                }           
+                //console.log("store - setUpwardNavigation- state.systemData.route.upwardNavigation: " + JSON.stringify(state.systemData.route.upwardNavigation));
+            },
+            setTransitionName: function (state, data) {
+                Vue.set(state.systemData, "transitionName", data);
+            },
+            setValueData: function (state, data) {
+                Vue.set(
+                    state.systemData,
+                    "valueData",
+                    data
+                );
+            },
+            setCollatedData: function (state, data) {
+                var newData = JSON.parse(JSON.stringify(data));
+                Vue.set(state.systemData, "collatedData", newData);
+            },
+            deleteCollatedData: function (state) {
+                var initialState = JSON.parse(
+                    JSON.stringify(state.initialState.systemData
+                        .collatedData)
+                );
+                for (var key in initialState) {
+                    if (initialState.hasOwnProperty(key)) {
+                        Vue.set(
+                            state.systemData.collatedData,
+                            key,
+                            initialState[key]
+                        );
+                    }
+                }
+            },
+            setCollatedDataByProperty: function (state, data) {
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        if (typeof state.systemData.collatedData[key] !==
+                                "undefined") {
+                            Vue.set(
+                                state.systemData.collatedData,
+                                key,
+                                data[key]
+                            );
+                        }
+                    }
+                }
+            },
+            setNestedPropertyInCollatedData: function (state, data) {
+                Vue.set(
+                    store.getters.getSchemaByPath(data.path),
+                    data.key,
+                    data.value
+                );
+            },
+            setGoogleScriptsLog: function (state, array) {
+                var googleScriptsLog = state.googleScriptsLog;
+                var index = -1;
+                array.forEach(function (elementOne) {
+                    index = googleScriptsLog.findIndex(function (elementTwo) {
+                        return elementTwo.scriptName ===
+                            elementOne.serverMethod.name;
+                    });
+                    Vue.set(
+                        state.googleScriptsLog,
+                        (index >= 0) ? index : googleScriptsLog.length,
+                        JSON.parse(JSON.stringify({
+                            scriptName: elementOne.serverMethod.name,
+                            executionTime: Date.now()
+                        }))
+                    );
+                });
+            },
+            setActiveGoogleScripts: function (state, array) {
+                var DELETE_COUNT = 1;
+                var activeGoogleScripts =
+                    state.activeGoogleScripts;
+                var modifiedActiveGoogleScripts = [];
+                var match = false;
+                if (array.length && store.getters.isInternetConnectionActive) {
+                    array.forEach(function (elementOne) {
+                        if (!activeGoogleScripts.some(function (elementTwo) {
+                            return elementOne.serverMethod.name ===
+                                elementTwo.serverMethod.name;
+                        })) {
+                            modifiedActiveGoogleScripts.push(elementOne);
+                        } else {
+                            modifiedActiveGoogleScripts.splice(
+                                activeGoogleScripts.findIndex(
+                                    function (elementThree) {
+                                        return elementOne.serverMethod.name ===
+                                            elementThree.serverMethod.name;
+                                    }
+                                ),
+                                DELETE_COUNT
+                            );
+                        }
+                    });
+                    Vue.set(
+                        state,
+                        "activeGoogleScripts",
+                        modifiedActiveGoogleScripts
+                    );
+                }
+            },
+            deleteActiveGoogleScripts: function (state) {
+                Vue.set(
+                    state,
+                    "activeGoogleScripts",
+                    []
+                );
+            },
+            setConnectionStatus: function (state, setting) {
+                Vue.set(
+                    state.systemData,
+                    "connectionStatus",
+                    setting
+                );
+            },
+            initialiseVueTableCache: function (state, data) {
+                var regEx = new RegExp(data.path.toLowerCase());
+                var vueTableCache = state.systemData.vueTableCache;
+                var match = false;
+                for (var i = 0; i < vueTableCache.length; i++) {
+                    if (regEx.test(vueTableCache[i].name)) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match) {
+                    Vue.set(
+                        state.systemData.vueTableCache,
+                        vueTableCache.length,
+                        {
+                            name: data.path.toLowerCase(),
+                            data: {
+                                createAt: Date.now(),
+                                updatedAt: 0,
+                                formattedData: [],
+                                dataFilters: {},
+                                filterKey: "",
+                                filteredColumns: data.filteredColumns,
+                                sortKey: "",
+                                sortOrders: {}
+                            }
+                        }
+                    );
+                }
+            },
+            setVueTableCache: function (state, data) {
+                var regEx = new RegExp(data.path.toLowerCase());
+                var vueTableCache = state.systemData.vueTableCache;
+                for (var i = 0; i < vueTableCache.length; i++) {
+                    //console.log("data.path.toLowerCase(): " + data.path.toLowerCase());
+                    //console.log("vueTableCache[i].name: " + vueTableCache[i].name);
+                    if (regEx.test(vueTableCache[i].name)) {
+                        for (var key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                if (typeof vueTableCache[i].data[key]
+                                        !== "undefined") {
+                                    Vue.set(
+                                        state.systemData.vueTableCache[i].data,
+                                        key,
+                                        data[key]
+                                    );
+                                    //console.log(key);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            deleteVueTableCache: function (state, path) {
+                //console.log(JSON.stringify(path));
+                var regEx = (typeof path === "string") ?
+                    new RegExp(path.toLowerCase()) :
+                    "";
+                var vueTableCache = state.systemData.vueTableCache;
+                if (regEx) {
+                    for (var i = 0; i < vueTableCache.length; i++) {
+                        if (regEx.test(vueTableCache[i].name)) {
+                            Vue.delete(
+                                state.systemData.vueTableCache,
+                                i
+                            );
+                        }
+                    }
+                }
+            },
+            setDevelopmentMode: function (state, data) {
+                Vue.set(
+                    state.systemData,
+                    "developmentMode",
+                    data
+                );
+            },
+            deleteBulkActionArray: function (state) {
+                Vue.set(
+                    state.systemData,
+                    "bulkActionArray",
+                    []
+                );
+            }
+        },
+        actions: {
+            deleteSessionState: function (context, data) {
+                context.commit("deleteSessionState");
+            },
+            deleteLocalUserSessionState: function (context) {
+                if (context.getters.storageAvailable("localStorage")) {
+                    // delete Session store
+                    localStorage.removeItem("user");
+                }
+            },
+            setDevelopmentMode: function (context, data) {
+                context.commit("setDevelopmentMode", data);
+            },
+            executeGoogleScriptRunner: function (context, array) {
+                var activeGoogleScripts =
+                    context.state.activeGoogleScripts;
+                var scriptsPendingExecution = [];
+                array.forEach(function (element) {
+                    if (!context.getters.hasGoogleScriptExecuted(
+                        element.serverMethod.name,
+                        element.lastExecuted
+                    ) && !element.hasDataBeenPulled) {
+                        scriptsPendingExecution.push(element);
+                    }
+                });
+                //console.log("executeGoogleScriptRunner - scriptsPendingExecution: " + JSON.stringify(scriptsPendingExecution));
+                if (scriptsPendingExecution.length) {
+                    context.dispatch("getLocalUserSessionState");
+                    context.commit("setActiveGoogleScripts",
+                        scriptsPendingExecution);
+                    context.commit("setGoogleScriptsLog",
+                        scriptsPendingExecution);
+                    if (context.getters.isInternetConnectionActive) {
+                        context.commit("setLoadCount", {
+                            isLoading: true,
+                            backgroundLoad: scriptsPendingExecution.some(
+                                function (element) {
+                                    return element.backgroundLoad;
+                                }
+                            )
+                        });
+                        googleScriptRunner(scriptsPendingExecution);
+                    }
+                }
+            },
+            initialiseValueData: function (context) {
+                var valueDataUpdatedAt = 0;
+                var valueData =  [];
+                var VALUE_DATA_ARRAY_UPDATED_AT =
+                    <VALUE_DATA_ARRAY_UPDATED_AT/>;
+                if (context.getters.storageAvailable("localStorage")) {
+                    // check local storage for valueData
+                    valueData = JSON.parse(
+                        localStorage.getItem("valueData")
+                    );
+                    valueDataUpdatedAt = 
+                        localStorage.getItem("valueDataUpdatedAt") || -1;
+                    //console.log("initialiseValueData - valueDataUpdatedAt: " + valueDataUpdatedAt);
+                    //console.log("initialiseValueData - VALUE_DATA_ARRAY_UPDATED_AT: " + VALUE_DATA_ARRAY_UPDATED_AT);
+                    if (Array.isArray(valueData) &&
+                            valueDataUpdatedAt > VALUE_DATA_ARRAY_UPDATED_AT) {
+                        //console.log("initialiseValueData - valueData.length: " + valueData.length);
+                        context.commit("setValueData", valueData);
+                    }
+                }
+                if (!context.state.systemData.valueData.length) {
+                    context.dispatch("executeGoogleScriptRunner", [
+                        {
+                            serverMethod: {
+                                name: "getValueData",
+                                parameters: {}
+                            }
+                        }
+                    ]);
+                }
+            },
+            setConnectionStatusListeners: function (context) {
+                // Original code from: http://html5-demos.appspot.com/static/navigator.onLine.html
+                window.addEventListener("online", function(e) {
+                    context.dispatch("setConnectionStatus", true);
+                }, false);
+                window.addEventListener("offline", function(e) {
+                    context.dispatch("setConnectionStatus", false);
+                }, false);
+            },
+            setConnectionStatus: function (context, setting) {
+                var data = {};
+                context.commit("setConnectionStatus", setting);
+                if (setting) {
+                    data = {
+                        message: "Your device is back online."
+                    };
+                    context.commit("setSnackBarMessages", data);
+                } else {
+                    if (context.state.systemData.loadCount &&
+                        document.getElementById("nprogress")) {
+                        context.commit("deleteLoadCount");
+                        NProgress.done();
+                        context.commit("deleteActiveGoogleScripts");
+                        data = {
+                            type: "serverMessage",
+                            message: "Your device lost connection " +
+                                "to our server before the process " +
+                                "could be completed. Please refresh " +
+                                "your web browser and try again."
+                        };
+                        context.commit("setErrors", data);
+                    } else {
+                        data = {
+                            message: "Your device has lost " +
+                                "connection with our server. " +
+                                "Check your internet connection."
+                        };
+                        context.commit("setSnackBarMessages", data);
+                    }
+                }
+            },
+            setValueData: function (context, data) {
+                context.commit("setValueData", data);
+                if (context.getters.storageAvailable("localStorage")) {
+                    // store valueData
+                    localStorage.setItem(
+                        "valueData",
+                        JSON.stringify(data)
+                    );
+                    localStorage.setItem(
+                        "valueDataUpdatedAt",
+                        Date.now()
+                    );
+                }
+                //console.log("store - state: " + JSON.stringify(state));
+            }
+        },
+        getters: {
+            appName: function (state) {
+                return state.systemData.appName;
+            },
+            timestamp: function (state) {
+                store.commit("setTimestamp");
+                return state.systemData.timestamp;
+            },
+            developmentMode: function (state) {
+                return state.systemData.developmentMode;
+            },
+            transitionName: function (state) {
+                return state.systemData.transitionName;
+            },
+            route: function (state) {
+                return state.systemData.route;
+            },
+            getSchemaByPath: function (state, getters) {
+                return function (path) {
+                    var schema = getters;  // a moving reference to internal objects within obj
+                    path.split(".").forEach(function (element) {
+                        if (typeof schema[element] === "undefined") {
+                            schema[element] = {};
+                        }
+                        schema = schema[element];
+                    });
+                    return schema;
+                };
+            },
+            hasGoogleScriptExecuted: function (state) {
+                return function (scriptName, timeInMilliseconds) {
+                    timeInMilliseconds = timeInMilliseconds || 5000;
+                    var googleScriptsLog = state.googleScriptsLog;
+                    return googleScriptsLog.some(function (element) {
+                        return element.scriptName === scriptName &&
+                            element.executionTime + timeInMilliseconds >
+                                Date.now()
+                    });
+                };
+            },
+            checkForActiveGoogleScripts: function (state) {
+                return function (scriptNames) {
+                    var activeGoogleScripts =
+                        state.activeGoogleScripts;
+                    var match = false;
+                    if (scriptNames.length) {
+                        for (var i = 0; i < scriptNames.length; i++) {
+                            for (var j = 0; j <
+                                    activeGoogleScripts.length; j++) {
+                                if (activeGoogleScripts[j]
+                                        .serverMethod.name ===
+                                            scriptNames[i]) {
+                                    match = true;
+                                }
+                            }
+                            if (match) {
+                                break;
+                            }
+                        }
+                    }
+                    return match;
+                };
+            },
+            loadCount: function (state) {
+                return state.systemData.loadCount;
+            },
+            errorsRegistered: function (state) {
+                var errorsRegistered = false;
+                var path = router.currentRoute.path;
+                var regEx = new RegExp(path);
+                for (var key in state.systemData.errors) {
+                    if (state.systemData.errors.hasOwnProperty(key)) {
+                        if (regEx.test(key)) {
+                            errorsRegistered = true;
+                            break;
+                        }
+                    }
+                }
+                return errorsRegistered;
+            },
+            isInternetConnectionActive: function (state) {
+                var data  = {};
+                var connectionStatus = state.systemData.connectionStatus;
+                if (!connectionStatus) {
+                    data = {
+                        type: "serverMessage",
+                        message: "Sorry, but you do not seem to " +
+                        "have an active internet connection. " +
+                        "Please check your connection and try again."
+                    };
+                    store.commit("setErrors", data);
+                }
+                return connectionStatus;
+            },
+            systemData: function (state) {
+                return state.systemData;
+            },
+            displayErrorModal: function (state) {
+                return state.systemData.displayErrorModal;
+            },
+            getVueTableCache: function (state) {
+                return function (path) {
+                    var regEx = new RegExp(path.toLowerCase());
+                    var vueTableCache = state.systemData.vueTableCache;
+                    for (var i = 0; i < vueTableCache.length; i++) {
+                        if (regEx.test(vueTableCache[i].name)) {
+                            return vueTableCache[i];
+                        }
+                    }
+                };
+            },
+            collatedData: function (state) {
+                return state.systemData.collatedData;
+            },
+            getArrayIndexByRefKey: function (state) {
+                return function (input) {
+                    var index = "";
+                    var arrayName = input.arrayName;
+                    var key = input.refKey;
+                    var value = input.refValue;
+                    var array = state.systemData[input.arrayName];
+                    var arrayLength = array.length;
+                    var arrayIndicesByRefKey =
+                        state.systemData.arrayIndicesByRefKey;
+                    if (arrayIndicesByRefKey[arrayName] && value) {
+                        if (arrayIndicesByRefKey[arrayName][key]) {
+                            index =
+                                arrayIndicesByRefKey[arrayName][key][value];
+                            if (typeof array[index] !== "undefined") {
+                                if (array[index][key] !== value) {
+                                    index = "";
+                                    arrayIndicesByRefKey[arrayName][key] = {};
+                                }
+                            }
+                        } else {
+                            arrayIndicesByRefKey[arrayName][key] = {};
+                        }
+                    } else {
+                        arrayIndicesByRefKey[arrayName] = {};
+                        arrayIndicesByRefKey[arrayName][key] = {};
+                    }
+                    if (typeof index !== "number") {
+                        for (var i = 0; i < arrayLength; i++) {
+                            Vue.set(
+                                state.systemData
+                                    .arrayIndicesByRefKey[arrayName][key],
+                                array[i][key],
+                                i
+                            );
+                            if (array[i][key] === value) {
+                                index = i;
+                            }
+                        }
+                    }
+                    return (typeof index === "number") ?
+                        index :
+                        "";
+                };
+            },
+            getDataFromArray: function (state, getters) {
+                return function (input) {
+                    var breakLoop = true;
+                    var index = "";
+                    if (typeof input.breakLoop === "boolean") {
+                        breakLoop = input.breakLoop;
+                    }
+                    var retrievedData = (breakLoop) ?
+                        {} :
+                        [];
+                    var arrayName = input.arrayName;
+                    delete input.arrayName;
+                    delete input.breakLoop;
+                    var key = Object.keys(input)[0];
+                    var array = state.systemData[arrayName];
+                    var arrayLength = array.length;
+                    if (!breakLoop) {
+                        for (var i = 0; i < arrayLength; i++) {
+                            if (array[i][key] === input[key]) {
+                                retrievedData.push(array[i]);
+                            }
+                        }
+                    } else {
+                        index = getters.getArrayIndexByRefKey({
+                            arrayName: arrayName,
+                            refKey: key,
+                            refValue: input[key]
+                        });
+                        retrievedData = (typeof index === "number") ?
+                            array[index] :
+                            {};
+                    }
+                    return retrievedData;
+                };
+            },
+            getValueDataFromArray: function (state) {
+                if (!state.systemData.valueData.length) {
+                    store.dispatch("initialiseValueData");
+                }
+                return function (value) {
+                    var valueData = [];
+                    var valueDataArray = state.systemData.valueData;
+                    var arrayLength = valueDataArray.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        if (valueDataArray[i].name === value) {
+                            valueData.push(valueDataArray[i]);
+                        }
+                        if (i < Number(arrayLength - 1)) {
+                            if (valueDataArray[i].name === value &&
+                                    valueDataArray[Number(i + 1)].name !==
+                                        value) {
+                                break;
+                            }
+                        }
+                    }
+                    return valueData;
+                };
+            },
+            errors: function (state) {
+                var errors = {};
+                var path = router.currentRoute.path;
+                var regEx = new RegExp(path);
+                var newKey = "";
+                var errorsStore = state.systemData.errors;
+                for (var key in errorsStore) {
+                    if (errorsStore.hasOwnProperty(key)) {
+                        if (regEx.test(key)) {
+                            newKey = key.replace(path + "/", "");
+                            errors[newKey] = errorsStore[key];
+                        }
+                    }
+                }
+                return errors;
+            },
+            storageAvailable: function (state) {
+                return function (type) {
+                    try {
+                        var storage = window[type],
+                            x = '__storage_test__';
+                        storage.setItem(x, x);
+                        storage.removeItem(x);
+                        return true;
+                    } catch (e) {
+                        return e instanceof DOMException && (
+                            // everything except Firefox
+                            e.code === 22 ||
+                            // Firefox
+                            e.code === 1014 ||
+                            // test name field too, because code might not be present
+                            // everything except Firefox
+                            e.name === 'QuotaExceededError' ||
+                            // Firefox
+                            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+                            // acknowledge QuotaExceededError only if there's something already stored
+                            storage.length !== 0;
+                    }
+                }
+            }
+        }
+    };
+</script>

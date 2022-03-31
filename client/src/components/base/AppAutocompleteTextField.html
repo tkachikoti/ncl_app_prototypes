@@ -1,0 +1,113 @@
+<template>
+	<div>
+	    <div class="autocomplete">
+			<input type="text" class="form-control" v-bind:class="{formControlError: error}" v-bind:maxlength="Number(maxlength)" v-bind:id="id" v-bind:required="required" v-model.trim="search" v-bind:autocomplete="autocomplete||'off'" v-on:keydown.down.prevent="onArrowDown" v-on:keydown.up.prevent="onArrowUp" v-on:keydown.enter.prevent="onEnter"/>
+			<p class="inlineErrorMessage" v-if="error"><i class="fas fa-exclamation-triangle"></i> {{error}}</p>
+			<ul v-show="isOpen&&results.length" class="autocomplete-results mdc-elevation--z1">
+				<li v-for="(result, i) in results" v-bind:key="i" v-bind:id="autocompleteId + i" class="autocomplete-result" v-bind:class="{'is-active': i==arrowCounter}" v-on:click="setResult(result)">
+					{{result}}
+				</li>
+			</ul>
+		</div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+            data: Array,
+            autocomplete: String,
+            id: String,
+            fieldName: String,
+            required: String,
+            maxlength: String,
+            getter: String,
+            setter: String,
+            error: String
+        },
+		data: function () {
+	        return {
+	        	results: [],
+        		isOpen: false,
+        		arrowCounter: -1
+	        };
+	    },
+	    computed: {
+	    	search: {
+	    		get: function () {
+                    return this.getter;
+                },
+                set: function (input) {
+                    this.$store.commit(this.setter, {
+                    	[this.fieldName]: input
+                    });
+                    if (input) {
+                        this.isOpen = true;
+                        this.filterResults(input);
+                    } else {
+                        this.isOpen = false;
+                        this.arrowCounter = -1;
+                    }
+                }
+	    	},
+	    	autocompleteId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "autocompleteId" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+	    },
+	    methods: {
+			filterResults: function (input) {
+				var search = input.trim().toLowerCase();
+				this.results = this.data.filter(function (element) {
+					return element.toLowerCase().indexOf(search)>=0
+				});
+			},
+			setResult(result) {
+				this.search = result;
+				this.isOpen = false;
+				this.arrowCounter = -1;
+			},
+			onArrowDown: function () {
+				var target = {};
+				if (this.arrowCounter < this.results.length - 1) {
+					this.arrowCounter = this.arrowCounter + 1;
+					var target = document.getElementById(
+						this.autocompleteId + this.arrowCounter
+					);
+					target.parentNode.scrollTop =
+						target.offsetTop - target.parentNode.offsetTop;
+				}
+			},
+			onArrowUp: function () {
+				var target = {};
+				if (this.arrowCounter > 0) {
+					this.arrowCounter = this.arrowCounter - 1;
+					var target = document.getElementById(
+						this.autocompleteId + this.arrowCounter
+					);
+					target.parentNode.scrollTop =
+						target.offsetTop - target.parentNode.offsetTop;
+				}
+			},
+			onEnter: function () {
+				this.search = this.results[this.arrowCounter];
+				this.isOpen = false;
+				this.arrowCounter = -1;
+			},
+			handleClickOutside(event) {
+				if (!this.$el.contains(event.target)) {
+					this.isOpen = false;
+					this.arrowCounter = -1;
+				}
+			}
+	    },
+	    mounted() {
+			document.addEventListener('click', this.handleClickOutside);
+		},
+		destroyed() {
+			document.removeEventListener('click', this.handleClickOutside);
+		}
+	};
+</script>

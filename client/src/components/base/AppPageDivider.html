@@ -1,0 +1,23 @@
+<template>
+	<div class="row">
+	    <div class="col-sm-2"></div> 
+	    <div class="col-sm-8 text-center center-block">
+	        <div class="astrodivider">
+	            <div class="astrodividermask"></div>
+	            <span><i v-bind:class="icon"></i></span>
+	            <h3>{{heading}}</h3>
+	            <p v-html="subheading" class="fontSize1-2rem"></p>
+	        </div>
+	    </div>
+	    <div class="col-sm-2"></div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		props: {
+			icon: String,
+			heading: String,
+			subheading: String
+		}
+	};
+</script>

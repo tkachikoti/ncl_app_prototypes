@@ -1,0 +1,115 @@
+<template>
+	<div>
+		<p class="inlineErrorMessage" v-if="error"><i class="fas fa-exclamation-triangle"></i> {{error}}</p>
+		<div v-bind:id="id" class="horizontally-aligned-radio-button">
+			<div v-bind:id="horizontallyAlignedRadioButtonId" class="horizontally-aligned-radio-button__row horizontally-aligned-radio-button__label horizontally-aligned-radio-button__row--flex text-center">
+				<div class="horizontally-aligned-radio-button__col">
+					<div class="horizontally-aligned-radio-button__label">&nbsp;</div>
+					<div class="horizontally-aligned-radio-button__input horizontally-aligned-radio-button__end-label-content text-right font-weight-bold">{{responseForlowestValueInData}}&nbsp;</div>
+				</div>
+				<div class="horizontally-aligned-radio-button__col horizontally-aligned-radio-button__container" v-for="(option, index) in data">
+					<div class="horizontally-aligned-radio-button__row horizontally-aligned-radio-button__label" v-bind:id="horizontallyAlignedRadioButtonId + 'label-' + option.name + '-' + option.value + '-' + index">{{option.value}}</div>
+					<div class="horizontally-aligned-radio-button__row grey horizontally-aligned-radio-button__input">
+						<label class="horizontally-aligned-radio-button__input-label text--black" v-bind:for="horizontallyAlignedRadioButtonId + '-input-' + id + '-' + option.name + option.value + '-' + index">	
+							<input class="horizontally-aligned-radio-button__input-target" type="radio" v-bind:id="horizontallyAlignedRadioButtonId + '-input-' + id + '-' + option.name + option.value + '-' + index" v-bind:aria-labelledby="horizontallyAlignedRadioButtonId + 'label-' + option.name + '-' + option.value + '-' + index" v-bind:value="option.value" v-bind:name="id + '-' + option.name + option.value + '-' + index" v-model="vModel"/>
+						</label>
+					</div>
+				</div>
+				<div class="horizontally-aligned-radio-button__col">
+					<div class="horizontally-aligned-radio-button__label">&nbsp;</div>
+					<div class="horizontally-aligned-radio-button__input horizontally-aligned-radio-button__end-label-content text-left font-weight-bold">&nbsp;{{responseForHighestValueInData}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+            data: Array | Object,
+            id: String,
+            disabled: Boolean,
+            getter: String | Number,
+            setter: String,
+            storePropertyName: String,
+            storePath: String,
+            notApplicable: Boolean,
+            optional: Boolean | Object,
+            error: String
+        },
+        data: function () {
+	        return {
+	        	slider: {}
+	        };
+	    },
+	    computed: {
+	    	responseForlowestValueInData: function () {
+	    		var data = this.sortArrayBy({
+	    			objectArray: this.data,
+	    			referenceKey: "value"
+	    		});
+	    		return (data.length) ?
+	    			data[0].response :
+	    			"";
+	    	},
+	    	responseForHighestValueInData: function () {
+	    		var data = this.sortArrayBy({
+	    			objectArray: this.data,
+	    			referenceKey: "value"
+	    		});
+	    		return (data.length) ?
+	    			data[Number(data.length - 1)]
+	    				.response :
+	    			"";
+	    	},
+	    	horizontallyAlignedRadioButtonId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "slider" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            vModel: {
+	    		get: function () {
+                    return this.getter;
+                },
+                set: function (input) {
+                    this.$store.commit(this.setter, {
+                    	key: this.storePropertyName,
+                    	value: input,
+                    	[this.storePropertyName]: input,
+                    	path: (this.storePath || "")
+                    });
+                }
+	    	}
+	    },
+	    methods: {
+            clearInput: function () {
+            	this.vModel = "";
+            }
+        },
+        /*
+	    mounted: function () {
+	    	var vm = this;
+            this.$nextTick(function () {
+                mdc.autoInit();
+                if (document.querySelector("#" + vm.horizontallyAlignedRadioButtonId)) {
+	                vm.slider = new mdc.slider.MDCSlider(
+	                    document.querySelector("#" + vm.horizontallyAlignedRadioButtonId)
+	                );
+	                vm.slider.listen("MDCSlider:input", function () {
+	                	vm.vModel = Number(vm.slider.value);
+	                });
+	                window.addEventListener("resize", vm.slider.layout());
+	                window.addEventListener("click", function () {
+	            		vm.slider.layout()
+	            	});
+	            	window.addEventListener("keydown", function () {
+	            		vm.slider.layout()
+	            	});
+	            }
+            });
+        }
+        */
+	};
+</script>

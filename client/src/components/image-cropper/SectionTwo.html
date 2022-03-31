@@ -1,0 +1,266 @@
+<template>
+    <div>
+        <AppStepper
+            scrollToId="TheImageCropperTabs"
+            v-bind:stepperData="stepperData"
+        ></AppStepper>
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <div class="img-container__parent">
+                    <div class="img-container__child">
+                        <img v-bind:src="imageDataUncropped" alt="Picture">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="row text-center mb-5">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8">
+                <div class="form-group">
+                    <div class ="col-sm-12">
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.zoom(0.1)" title="Zoom in"><i class="fas fa-search-plus"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.zoom(-0.1)" title="Zoom out"><i class="fas fa-search-minus"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.rotate(-5)" title="Rotate left"><i class="fas fa-undo"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.rotate(5)" title="Rotate right"><i class="fas fa-redo"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.scaleX(scale.x)" title="Scale X"><i class="fas fa-arrows-alt-h"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.scaleY(scale.y)" title="Scale Y"><i class="fas fa-arrows-alt-v"></i></button>
+                        <button class="btn buttonSecondaryBorderless ripple buttonMarginLeftRight1em" v-on:click="cropper.reset()">Reset</button>
+                    </div>
+                </div>
+                <div class="form-group mt-5">
+                    <div class="mdc-touch-target-wrapper">
+                        <button class="mdc-button mdc-button--outlined" v-on:click="$router.push('/index')">
+                            <div class="mdc-button__ripple"></div>
+                            <i class="fas fa-chevron-circle-left buttonIcon--margin"></i>
+                            <span class="mdc-button__label">Previous</span>
+                            <div class="mdc-button__touch"></div>
+                        </button>
+                        <button id="downloadImageButton" class="mdc-button mdc-button--touch mdc-button--raised" v-on:click.prevent="downloadImage">
+                            <div class="mdc-button__ripple"></div>
+                            <span class="mdc-button__label">Download Image</span>
+                            <div class="mdc-button__touch"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+    </div>
+</template>
+<script type="text/javascript">
+    module.export = {
+        mixins: [appMixin],
+        data: function () {
+            return {
+                cropper: {},
+                scale: {
+                    x: -1,
+                    y: -1
+                },
+                stepperData: {
+                    stepOne: {
+                        completed: this.$store.getters.imageCropper
+                            .sectionOneComplete,
+                        path: "/index",
+                        title: "Select"
+                    },
+                    stepTwo: {
+                        completed: this.$store.getters.imageCropper
+                            .sectionTwoComplete,
+                        path: "/section-two",
+                        title: "Crop and Download"
+                    }
+                }
+            };
+        },
+        computed: {
+            listOfImageSizesForComponents: function () {
+                return this.$store.getters.imageCropper
+                    .listOfImageSizesForComponents;
+            },
+            imageDataUncropped: {
+                get: function () {
+                    return this.$store.getters.imageCropper.imageDataUncropped;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            imageDataUncropped: input
+                        }
+                    );
+                }
+            },
+            imageDataCropped: {
+                get: function () {
+                    return this.$store.getters.imageCropper.imageDataCropped;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            imageDataCropped: input
+                        }
+                    );
+                }
+            },
+            contentType: {
+                get: function () {
+                    return this.$store.getters.imageCropper.contentType;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            contentType: input
+                        }
+                    );
+                }
+            },
+            componentId: {
+                get: function () {
+                    return this.$store.getters.imageCropper.componentId;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            componentId: input
+                        }
+                    );
+                }
+            },
+            exportImageWidth: {
+                get: function () {
+                    return this.$store.getters.imageCropper.exportImageWidth;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            exportImageWidth: input
+                        }
+                    );
+                }
+            },
+            exportImageHeight: {
+                get: function () {
+                    return this.$store.getters.imageCropper.exportImageHeight;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            exportImageHeight: input
+                        }
+                    );
+                }
+            },
+            aspectRatio: {
+                get: function () {
+                    return this.$store.getters.imageCropper.aspectRatio;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            aspectRatio: input
+                        }
+                    );
+                }
+            },
+            sectionTwoComplete: {
+                get: function () {
+                    return this.$store.getters.imageCropper.sectionTwoComplete;
+                },
+                set: function (input) {
+                    this.$store.commit(
+                        "setImageCropper", {
+                            sectionTwoComplete: input
+                        }
+                    );
+                }
+            }
+        },
+        mounted: function () {
+            this.$nextTick(function () {
+                var image = {};
+                var canvas = {};
+                var vm = this;
+                this.listOfImageSizesForComponents
+                    .forEach(function (component) {
+                        if (vm.componentId === component.id) {
+                            vm.exportImageWidth = component.width;
+                            vm.exportImageHeight = component.height;
+                            vm.exportAspectRatio = component.aspectRatio;
+                        }
+                    });
+                //this.smoothScroll("app");
+                if (!this.imageDataUncropped) {
+                    this.$router.push("/index");
+                } else {
+                    var container =
+                        document.querySelector('.img-container__child');
+                    var image = container.getElementsByTagName('img').item(0);
+                    //canvas = document.getElementById("imageCropperCanvas");
+                    //image = document.createElement("img");
+                    //image.id = "croppedImageCanvas";
+                    //image.src = this.imageDataUncropped;
+                    // clean canvas before
+                    //canvas.innerHTML = "";
+                    // init cropper
+                    // append new image
+                    //canvas.appendChild(image);
+                    this.cropper = new Cropper(image, {
+                        //viewMode: 1,
+                        aspectRatio: this.exportAspectRatio,
+                        width: 100,
+                        height: 100,
+                        preview: ".img-preview",
+                        maxWidth: 800,
+                        maxHeight: 400,
+                        dragMode: 'move'
+                    });
+                    image.addEventListener("crop", function (event) {
+                        // scale x
+                        if (event.detail.scaleX > 0) {
+                            vm.scale.x = -1;
+                        } else {
+                            vm.scale.x = 1;
+                        }
+                        // scale y
+                        if (event.detail.scaleY > 0) {
+                            vm.scale.y = -1;
+                        } else {
+                            vm.scale.y = 1;
+                        }
+                    });
+                }
+            });
+        },
+        methods: {
+            downloadImage: function() {
+                var download = document.getElementById('downloadImageButton');
+                var imageName = 'cropped-image';
+                this.imageDataCropped = this.cropper
+                    .getCroppedCanvas({
+                        "fillColor": "#fff",
+                        "width": this.exportImageWidth,
+                        "height": this.exportImageHeight
+                    }).toDataURL(this.contentType, 0.8);
+
+                //download.download = uploadedImageName;
+                //download.href = this.imageDataCropped;
+
+                var link = document.createElement("a");
+                link.setAttribute("href", this.imageDataCropped);
+                link.setAttribute("download", imageName);
+                //document.body.appendChild(link); // Required for FF
+                link.click(); // This will download the data file named "my_data.csv".
+            },
+            toggleDataTableModal: function () {
+                $("#staffInfoDataTable").modal("toggle");
+            },
+        },
+        beforeDestroy: function () {
+            if (Object.keys(this.cropper).length) {
+                this.cropper.destroy();
+            }
+        }
+    };
+</script>

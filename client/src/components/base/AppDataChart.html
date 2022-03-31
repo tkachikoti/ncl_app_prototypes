@@ -1,0 +1,148 @@
+<template>
+	<div>
+		<canvas v-bind:id="chartId" class="chartjs"></canvas>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+            datasets: Array,
+            labels: Array,
+            idOneLabelString: String,
+            idTwoLabelString: String,
+            type: String,
+            maxValue: Number
+        },
+        data: function () {
+	        return {
+	        	chart: {},
+	        	chartPreset: {
+	        		/*
+	        		line: {
+	        			scales: {
+				            yAxes: [{
+				                ticks: {
+				                    suggestedMin: this.suggestedMin || 0,
+				                    suggestedMax: this.suggestedMax || 100
+				                }
+				            }]
+				        }
+	        		},
+	        		*/
+		        	radar: {
+						elements: {
+							line: {
+								tension: 0,
+								borderWidth: 3
+							}
+						},
+						scale: {
+							ticks: {
+								beginAtZero: true,
+								max: this.maxValue
+							}
+						}
+					},
+					bar: {
+						responsive: true,
+						tooltips: {
+							mode: "index",
+							intersect: true
+						},
+						scales: {
+				           yAxes: [
+					           {
+									display: true,
+									position: "left",
+									type: "linear",
+									scaleLabel: {
+										display: true,
+										labelString: this.idOneLabelString,
+										beginAtZero: true,
+									},
+									id: "idOne"
+					            },
+					            {
+									display: true,
+									position:"right",
+									type: "linear",
+									scaleLabel: {
+										display: true,
+										labelString: this.idTwoLabelString,
+										beginAtZero: true,
+									},
+									gridLines: {
+										display: false
+									},
+									id: "idTwo"
+					            }
+				            ]
+				        }
+					},
+					horizontalBar: {
+						elements: {
+							rectangle: {
+								borderWidth: 2,
+							}
+						},
+						responsive: true,
+						legend: {
+							position: "right",
+						}
+					}
+	        	}
+	        };
+	    },
+	    computed: {
+	    	chartId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "chartjs-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+	    },
+	    mounted: function () {
+	    	var vm = this;
+	    	var chartConfiguration = {
+				type: this.type,
+				data:{
+					labels: this.copyObject(this.labels),
+					datasets: this.copyObject(this.datasets)
+				},
+				options: {}
+			};
+            this.$nextTick(function () {
+            	chartConfiguration.options = (this.chartPreset[this.type]) ?
+            		this.chartPreset[this.type] :
+            		{};
+                chartConfiguration.options.responsive = true;
+                this.chart = new Chart(
+                	document.getElementById(this.chartId),
+                	chartConfiguration
+                );
+            });
+        },
+        watch: {
+            datasets: function (newValue, oldValue) {
+                if (newValue && Object.keys(this.chart).length) {
+                	this.chart.data.datasets = [{}];
+					this.chart.data.datasets = this.copyObject(newValue);
+                    this.chart.update();
+                }
+            },
+            labels: function (newValue, oldValue) {
+                if (newValue && Object.keys(this.chart).length) {
+                	this.chart.data.labels = [];
+					this.chart.data.labels = this.copyObject(newValue);
+                    this.chart.update();
+                }
+            }
+        },
+        beforeDestroy: function () {
+            if (Object.keys(this.chart).length) {
+                this.chart.destroy();
+            }
+        }
+	};
+</script>

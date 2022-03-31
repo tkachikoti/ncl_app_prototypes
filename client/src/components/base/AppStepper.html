@@ -1,0 +1,42 @@
+<template>
+	<div>
+		<div v-bind:id="scrollToId || ''"></div>
+		<div class="row">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8">
+				<div class="wrapper">
+					<nav v-bind:id="stepperId" class="stepper">
+						<ul class="stepper__list">
+							<li v-for="(step, name, index) in stepperData" v-bind:class="{'stepper__list__item stepper__list__item--pending': !step.completed && $route.path.toLowerCase().indexOf(step.path)<0, 'stepper__list__item stepper__list__item--current': $route.path.toLowerCase().indexOf(step.path)>=0, 'stepper__list__item stepper__list__item--done': step.completed && $route.path.toLowerCase().indexOf(step.path)<0}" v-on:click.prevent="$router.push(step.path)" v-on:keyup.enter="$router.push(step.path)">
+								<svg :key="Number(index + 1) + '-' + step.completed + '-' + name + '-' + stepperId" class="stepper__list__icon" v-bind:class="{'stepper__list__icon--current': !step.completed && $route.path.toLowerCase().indexOf(step.path)<0 || $route.path.toLowerCase().indexOf(step.path)>=0}" width="24" height="24" viewbox="0 0 24 24" aria-hidden="true">
+								<path :key="Number(index + 2) + '-' + step.completed + '-' + name + '-' + stepperId" v-if="!step.completed && $route.path.toLowerCase().indexOf(step.path)<0" d="M12 16.1c1.8 0 3.3-1.4 3.3-3.2 0-1.8-1.5-3.2-3.3-3.2s-3.3 1.4-3.3 3.2c0 1.7 1.5 3.2 3.3 3.2zm0 1.7c-2.8 0-5-2.2-5-4.9S9.2 8 12 8s5 2.2 5 4.9-2.2 4.9-5 4.9z"></path>
+								<path :key="Number(index + 3) + '-' + step.completed + '-' + name + '-' + stepperId" v-else-if="$route.path.toLowerCase().indexOf(step.path)>=0" d="M12.2 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0 1.377a9.377 9.377 0 1 1 0-18.754 9.377 9.377 0 0 1 0 18.754zm-4-8a1.377 1.377 0 1 1 0-2.754 1.377 1.377 0 0 1 0 2.754zm4 0a1.377 1.377 0 1 1 0-2.754 1.377 1.377 0 0 1 0 2.754zm4 0a1.377 1.377 0 1 1 0-2.754 1.377 1.377 0 0 1 0 2.754z" fill="#006DFF" fill-rule="evenodd"></path>
+								<path :key="Number(index + 4) + '-' + step.completed + '-' + name + '-' + stepperId" v-if="step.completed && $route.path.toLowerCase().indexOf(step.path)<0" class="st0" d="M12 20c4.4 0 8-3.6 8-8s-3.6-8-8-8-8 3.6-8 8 3.6 8 8 8zm0 1.5c-5.2 0-9.5-4.3-9.5-9.5S6.8 2.5 12 2.5s9.5 4.3 9.5 9.5-4.3 9.5-9.5 9.5z"></path>
+								<path :key="Number(index + 5) + '-' + step.completed + '-' + name + '-' + stepperId" v-if="step.completed && $route.path.toLowerCase().indexOf(step.path)<0" class="st0" d="M11.1 12.9l-1.2-1.1c-.4-.3-.9-.3-1.3 0-.3.3-.4.8-.1 1.1l.1.1 1.8 1.6c.1.1.4.3.7.3.2 0 .5-.1.7-.3l3.6-4.1c.3-.3.4-.8.1-1.1l-.1-.1c-.4-.3-1-.3-1.3 0l-3 3.6z"></path>
+								</svg><span :key="Number(index + 6) + '-' + step.completed + '-' + name + '-' + stepperId" class="stepper__list__title" tabindex="0">{{Number(index + 1)}}. {{step.title}}</span>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+			<div class="col-sm-2"></div>
+		</div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+			scrollToId: String | Object,
+			stepperData: Array | Object
+        },
+	    computed: {
+	    	stepperId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "stepper-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+	    }
+	};
+</script>

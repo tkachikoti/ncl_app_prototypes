@@ -1,0 +1,197 @@
+<template>
+    <div>
+        <h1>GO MOBILE STAFF PAGE - DATA CAPTURE TOOL</h1>
+        <div class="row text-center mb-5">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-8 mdCard">
+                <div class="form-group">
+                    <AppInstructionBox
+                        html="<p>Please enter a GO Mobile staff page URL</p>">
+                    </AppInstructionBox>
+                </div>
+                <form>
+                    <div class="form-group">
+                        <div class="mdc-text-field mdc-text-field--outlined w-100">
+                            <input type="text" id="goMobileStaffPageURL" v-model="urlInput" class="mdc-text-field__input">
+                            <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__notch">
+                                    <label for="goMobileStaffPageURL" class="mdc-floating-label">GO Mobile staff page URL</label>
+                                </div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="mdc-touch-target-wrapper">
+                            <button class="mdc-button mdc-button--touch mdc-button--raised" v-bind:disabled="getStaffInfoDataIsRunning||!urlInput" v-on:click.prevent="getStaffInfoData">
+                                <div class="mdc-button__ripple"></div>
+                                <span class="mdc-button__label"><span v-if="getStaffInfoDataIsRunning"><i class="fas fa-circle-notch fa-spin"></i> Capturing Data...</span><span v-else>Capture Data</span>
+                                <div class="mdc-button__touch"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <transition-group name="fade" mode="out-in">
+                        <div :key="staffInfoData.length" v-if="staffInfoData.length">
+                            <div class="form-group">
+                                <div class="alert alert-success textColorGreen" role="alert">
+                                    <h4>DATA SUMMARY</h4>
+                                    <ul>
+                                        <li>{{staffInfoData.length}} staff members found.</li>
+                                        <li v-if="staffMembersWithoutEmail.length">{{staffMembersWithoutEmail.length}} staff member<span v-if="staffMembersWithoutEmail.length>1">s</span> without an email address.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="mdc-touch-target-wrapper">
+                                    <button class="mdc-button mdc-button--touch mdc-button--raised" v-on:click.prevent="downloadCSV">
+                                        <div class="mdc-button__ripple"></div>
+                                        <span class="mdc-button__label">Download CSV</span>
+                                        <div class="mdc-button__touch"></div>
+                                    </button>
+                                    <button class="mdc-button mdc-button--outlined" v-on:click.prevent="toggleDataTableModal">
+                                        <div class="mdc-button__ripple"></div>
+                                        <span class="mdc-button__label">View Data</span>
+                                        <div class="mdc-button__touch"></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition-group>
+                </form>
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+        <!-- Table modal -->
+        <div class="modal fade" id="staffInfoDataTable" tabindex="-1" role="dialog" aria-labelledby="staffInfoDataTableModal" aria-hidden="true" data-backdrop="true" v-bind:style="{zIndex: '2000'}">
+            <div class="modal-dialog modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="staffInfoDataTableModal">STAFF DATA TABLE</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <AppVueTable
+                                        tableName="staffInfoDataTable1"
+                                        :data="staffInfoData"
+                                        :columns="columns"
+                                        :refreshTableDataMethods="[]"
+                                        :hideFilter="false"
+                                        :hideSearch="false">
+                                    </AppVueTable>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+        mixins: [appMixin],
+		data: function () {
+	        return {
+                urlInput: "https://www.ncl.ac.uk/engineering/staff/",
+                columns: {
+                    index: {
+	        			key: "index",
+	        			name: "Index",
+	        			disabled: true,
+	        			show: true
+	        		},
+                    firstName: {
+                        key: "firstName",
+                        name: "First Name",
+                        show: true
+                    },
+                    lastName: {
+                        key: "lastName",
+                        name: "Last Name",
+                        show: true
+                    },
+                    email: {
+                        key: "email",
+                        name: "Email",
+                        show: true
+                    }
+                }
+	        };
+	    },
+        computed: {
+            staffInfoData: function () {
+                return this.$store.getters.systemData.staffInfoData;
+            },
+            staffInfoCSVFriendlyData: function () {
+                return this.$store.getters.systemData.staffInfoCSVFriendlyData;
+            },
+            getStaffInfoDataIsRunning: function () {
+                return this.$store.getters.checkForActiveGoogleScripts([
+                    "getStaffInfoData"
+                ]);
+            },
+            staffMembersWithoutEmail: function () {
+                var staffInfoData = this. staffInfoData;
+                return staffInfoData.filter(function (staffMember) {
+                    return !staffMember.email;
+                });
+            }
+        },
+	    methods: {
+	        getStaffInfoData: function() {
+	            this.$store.dispatch("executeGoogleScriptRunner", [
+                    {
+    	                serverMethod: {
+    	                    name: "getStaffInfoData",
+    	                    parameters: {
+                                urlInput: this.urlInput
+                            }
+                        },
+                        backgroundLoad: true
+    	            }
+                ]);
+            },
+            downloadCSV: function() {
+                var dateString =
+                    this.getDateString(Date.now()) + " - " +
+                    this.getTimeString(Date.now());
+	            const staffInfoCSVFriendlyData = this.staffInfoCSVFriendlyData;
+                let csvContent = "data:text/csv;charset=utf-8,";
+                staffInfoCSVFriendlyData.forEach(function(rowArray) {
+                    let row = rowArray.join(",");
+                    csvContent += row + "\r\n";
+                });
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "staff_data-(" + dateString + ")" + ".csv");
+                document.body.appendChild(link); // Required for FF
+                link.click(); // This will download the data file named "my_data.csv".
+            },
+            toggleDataTableModal: function () {
+                $("#staffInfoDataTable").modal("toggle");
+            },
+        },
+        mounted: function () {
+            this.$nextTick(function () {
+                mdc.autoInit();
+                const textFields = document.querySelectorAll('.mdc-text-field');
+                textFields.forEach(function (field) {
+                    mdc.textField.MDCTextField.attachTo(field);
+                });
+                const selector = ".mdc-button";
+                const ripples =
+                    [].map.call(document.querySelectorAll(selector),
+                        function(element) {
+                            return new mdc.ripple.MDCRipple(element);
+                        });
+            });
+        }
+	};
+</script>

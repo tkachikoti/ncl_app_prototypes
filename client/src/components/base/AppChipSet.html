@@ -1,0 +1,100 @@
+<template>
+	<div>
+		<fieldset v-bind:aria-describedby="chipSetId">
+	        <legend>
+				<p v-show="label" class="h4 lable text--black">{{label}}:<span class="textColorRed" v-if="!optional">*</span> <span class="font-weight-bold" v-else>(optional)</span></p>
+			</legend>
+			<p class="inlineErrorMessage" v-if="error"><i class="fas fa-exclamation-triangle"></i> {{error}}</p>
+			<p v-show="displayHint" id="chipSetId" class="text--small text--grey">Select all that apply.</p>
+	        <div class="mdc-chip-set mdc-chip-set--filter" role="grid">
+	            <div class="mdc-touch-target-wrapper" v-for="(option, index) in data">
+	                <div class="mdc-chip mdc-chip--touch mdc-elevation--z1" v-bind:class="{'mdc-chip--selected': vModel.some(function (element) {return element === option.response})}" v-on:click.prevent="modifyStoreData(option.response)" v-on:keydown.enter.prevent="modifyStoreData(option.response)" role="row">
+	                    <div class="mdc-chip__ripple"></div>
+	                    <span class="mdc-chip__checkmark" >
+	                        <svg class="mdc-chip__checkmark-svg" viewBox="-2 -3 30 30">
+	                            <path class="mdc-chip__checkmark-path" fill="none" v-bind:stroke="(vModel.some(function (element) {return element === option.response})) ? 'white' : 'black'"
+	                        d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+	                        </svg>
+	                    </span>
+	                    <span role="gridcell">
+	                        <span role="checkbox" tabindex="0" v-bind:aria-checked="(vModel.some(function (element) {return element === option.response})) ? 'true' : 'false'" v-bind:aria-labelledby="option.name + '-' + option.value + '-' + index + '-' + chipSetId" class="mdc-chip__primary-action">
+	                            <span v-bind:id="option.name + '-' + option.value + '-' + index + '-' + chipSetId" class="mdc-chip__text">{{option.response}}</span>
+	                        </span>
+	                    </span>
+	                </div>
+	            </div>
+	        </div>
+	    </fieldset>
+    </div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+			label: String,
+			optional: Boolean,
+			displayHint: Boolean,
+			data: Array,
+			error: String,
+            getter: String | Number,
+            setter: String,            
+            storePropertyName: String,
+            storePath: String
+        },
+        data: function () {
+	        return {
+	        	chipSet: {},
+	        	ripples: []
+	        };
+	    },
+	    computed: {
+	    	chipSetId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "chip-set-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            vModel: {
+	    		get: function () {
+                    return this.getter;
+                },
+                set: function (input) {
+                    this.$store.commit(this.setter, {
+                    	key: this.storePropertyName,
+                    	value: input,
+                    	[this.storePropertyName]: input,
+                    	path: (this.storePath || "")
+                    });
+                }
+	    	}
+	    },
+	    methods: {
+            modifyStoreData: function (value) {
+                var index = this.vModel.findIndex(function (element) {
+                    return element === value;
+                });
+                if (index < 0) {
+                    this.vModel.push(value);
+                } else {
+                    this.vModel.splice(index, 1);
+                }
+            }
+        },
+	    mounted: function () {
+	    	var vm = this;
+            this.$nextTick(function () {
+                if (document.querySelector("#" + vm.chipSetId)) {
+	                mdc.autoInit();
+                    vm.chipSet = new mdc.chips.MDCChipSet(
+                        document.querySelector(".mdc-chip-set")
+                    );
+                    vm.ripples =
+	                    [].map.call(document.querySelectorAll(".mdc-chip"),
+	                        function(element) {
+	                            return new mdc.ripple.MDCRipple(element);
+	                        });
+	            }
+            });
+        }
+	};
+</script>

@@ -1,0 +1,105 @@
+<template>
+	<div>
+		<p class="textColorBlue text--small" v-if="typeof getter !== 'number'">Drag the range slider to input value</p><p class="textColorGreen text--small" v-else>{{getResponseFromValueDataUsingInteger(getter, valueDataName)}}</p>
+		<p class="text--small" v-if="optional"><a class="aYccStyleBlue font-weight-bold" tabindex="0" v-on:click.prevent="clearInput" v-on:keydown.enter.prevent="clearInput">Clear</a></p>
+		<div v-bind:id="id">
+			<div v-bind:id="sliderId" class="mdc-slider mdc-slider--discrete mdc-slider--display-markers" tabindex="0" role="slider" v-bind:aria-valuemin="(typeof valueMinimum === 'number') ? valueMinimum : 1" v-bind:aria-valuemax="(valueMaximum || valueDataArray.length || 3)" v-bind:aria-valuenow="(typeof valueInitial === 'number' && !vModel) ? valueInitial : vModel || Math.round(valueDataArray.length / 2)" data-step="1" aria-label="Select Value" v-bind:aria-disabled="(disabled || false)">
+				<div class="mdc-slider__track-container">
+					<div class="mdc-slider__track"></div>
+					<div class="mdc-slider__track-marker-container"></div>
+				</div>
+				<div class="mdc-slider__thumb-container">
+					<div class="mdc-slider__pin">
+						<span class="mdc-slider__pin-value-marker"></span>
+					</div>
+					<svg class="mdc-slider__thumb" width="21" height="21">
+						<circle cx="10.5" cy="10.5" r="7.875"></circle>
+					</svg>
+					<div class="mdc-slider__focus-ring"></div>
+				</div>
+			</div>
+			<div class="custom-control custom-radio" v-if="typeof notApplicable === 'boolean' ? notApplicable : false">
+                <input type="radio" v-bind:id="sliderId + 'id-radio-input'" v-bind:value="1" v-bind:name="sliderId + '-name-radio-input'" class="custom-control-input" v-model="vModel"/>
+                <label class="custom-control-label" v-bind:for="sliderId + 'id-radio-input'">Not applicable</label>
+            </div>
+		</div>
+		<p class="inlineErrorMessage" v-if="error"><i class="fas fa-exclamation-triangle"></i> {{error}}</p>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+            valueDataName: String,
+            id: String,
+            valueMinimum: Number,
+            valueMaximum: Number,
+            valueInitial: Number,
+            disabled: Boolean,
+            getter: String | Number,
+            setter: String,
+            storePropertyName: String,
+            storePath: String,
+            notApplicable: Boolean,
+            optional: Boolean | Object,
+            error: String
+        },
+        data: function () {
+	        return {
+	        	slider: {}
+	        };
+	    },
+	    computed: {
+	    	valueDataArray: function () {
+	    		return this.$store.getters.getValueDataFromArray(
+	    			this.valueDataName
+	    		);
+	    	},
+	    	sliderId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "slider" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            vModel: {
+	    		get: function () {
+                    return this.getter;
+                },
+                set: function (input) {
+                    this.$store.commit(this.setter, {
+                    	key: this.storePropertyName,
+                    	value: input,
+                    	[this.storePropertyName]: input,
+                    	path: (this.storePath || "")
+                    });
+                }
+	    	}
+	    },
+	    methods: {
+            clearInput: function () {
+            	this.vModel = "";
+            }
+        },
+	    mounted: function () {
+	    	var vm = this;
+            this.$nextTick(function () {
+                mdc.autoInit();
+                if (document.querySelector("#" + vm.sliderId)) {
+	                vm.slider = new mdc.slider.MDCSlider(
+	                    document.querySelector("#" + vm.sliderId)
+	                );
+	                vm.slider.listen("MDCSlider:input", function () {
+	                	vm.vModel = Number(vm.slider.value);
+	                });
+	                window.addEventListener("resize", vm.slider.layout());
+	                window.addEventListener("click", function () {
+	            		vm.slider.layout()
+	            	});
+	            	window.addEventListener("keydown", function () {
+	            		vm.slider.layout()
+	            	});
+	            }
+            });
+        }
+	};
+</script>

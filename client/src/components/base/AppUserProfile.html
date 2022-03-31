@@ -1,0 +1,95 @@
+<template>
+	<div>
+        <div v-bind:id="userProfileId" class="team-profile mdc-elevation--z3">
+            <a class="cursorPointer" v-on:click="viewUserProfileInModal">
+                <i v-show="!displayImage" class="fas fa-user textColorWhite team_profile__picture-place-holder"></i>
+                <img v-show="displayImage" class="center-block img-responsive team-profile__picture" v-on:load="displayImage=true" v-bind:src="userProfileData.picture" v-bind:alt="userProfileData.name"/>
+            </a>
+            <div class="team-profile__action-buttons">
+                <a data-toggle="tooltip" data-placement="auto" title="View profile" tabindex=0 v-if="userProfileData.bio" class="cursorPointer team-profile__button colorInherit" v-on:keyup.enter="viewUserProfileInModal" v-on:click="viewUserProfileInModal"><i class="fa fa-info-circle fa-lg"></i></a>
+                <a data-toggle="tooltip" data-placement="auto" title="View LinkedIn" v-if="userProfileData.linkedInUrl" class="colorInherit team-profile__button" target="_blank" rel="noopener noreferrer" v-bind:href="userProfileData.linkedInUrl"><i class="fab fa-linkedin-in fa-lg"></i></a>
+            </div>
+            <a class="cursorPointer" v-on:click="viewUserProfileInModal">
+                <div class="team-profile__title">
+                    <p class="font-weight-bold colorInherit">{{userProfileData.name}}</p>
+                    <p class="team-profile__role colorInherit">{{userProfileData.role}}</p>
+                </div>
+            </a>
+        </div>
+        <div class="modal fade" v-bind:id="userProfileModalId" tabindex="-1" role="dialog" v-bind:aria-labelledby="userProfileModalLabelId" aria-hidden="true" data-backdrop="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header backgroundColorOrange">
+                        <h4 class="modal-title" v-bind:id="userProfileModalLabelId">About {{getFirstName(userProfileData.name || "")}}</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <i v-if="!userProfileData.picture" class="fas fa-user text--black team_profile-modal__picture-place-holder"></i>
+                                    <img v-else class="center-block img-responsive team_profile-modal__picture mdc-elevation--z1" v-bind:src="userProfileData.picture" v-bind:alt="userProfileData.name"/>
+                                    <p class="font-weight-bold div--topBottomMargin--1em">{{userProfileData.name}}</p>
+                                    <p class="div--topBottomMargin--1em">{{userProfileData.role}}</p>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p><pre class="yccFontReset">{{userProfileData.bio}}</pre></p>
+                                    <p v-if="userProfileData.linkedInUrl" class="div--topBottomMargin--1em"><span class="font-weight-bold">LinkedIn: </span><a class="aYccStyleBlue" v-bind:href="userProfileData.linkedInUrl" target="_blank" rel="noopener noreferrer">{{userProfileData.name}}</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+        data: function () {
+            return {
+                displayImage: false
+            }
+        },
+        props: {
+            userProfileData: Array | Object
+        },
+	    computed: {
+            userProfileId: function () {
+                var min = Math.ceil(100000);
+                var max = Math.floor(999999);
+                return "userProfileId-" +
+                    Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+	    	userProfileModalId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "userProfileModalId-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            userProfileModalLabelId: function () {
+                var min = Math.ceil(100000);
+                var max = Math.floor(999999);
+                return "userProfileModalLabelId-" +
+                    Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+	    },
+        methods: {
+            viewUserProfileInModal: function () {
+                $("#" + this.userProfileModalId).modal("toggle");
+            }
+        },
+        mounted: function () {
+            // fix the CSS height to ensure all team profiles are the same height.
+            var teamProfile = {};
+            this.$nextTick(function () {
+                teamProfile = document.querySelector("#" + this.userProfileId);
+                teamProfile.parentNode.classList.add("h-100");
+                teamProfile.parentNode.parentNode.classList.add("h-100");
+            });
+        }
+	};
+</script>

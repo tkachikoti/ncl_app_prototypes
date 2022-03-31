@@ -1,0 +1,26 @@
+<template>
+	<div class="row">
+	    <div class ="col-sm-12">
+	        <button v-if="route" class="btn buttonSecondaryBorderless ripple backButton" v-on:click.prevent="loadRoute(route)"><i class="fas fa-arrow-left"></i></button>
+	        <a v-else-if="url" v-bind:href="url" rel="noopener noreferrer"><button class="btn buttonSecondaryBorderless ripple backButton" data-toggle="tooltip" data-placement="auto" title="Back"><i class="fas fa-arrow-left"></i></button></a>
+	    </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		props: {
+			route: String,
+			url: String
+		},
+		methods: {
+			loadRoute: function (route) {
+				//console.log("AppBackButton - route: " + JSON.stringify(route));
+				if (Number(route)) {
+					this.$router.go(route);
+				} else {
+					this.$router.push(route);
+				}
+			}
+		}
+	};
+</script>

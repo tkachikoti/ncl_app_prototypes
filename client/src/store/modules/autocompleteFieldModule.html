@@ -1,0 +1,50 @@
+<script type="text/javascript">
+    var autocompleteFieldModule = {
+        strict: true,
+        state: {
+            initialState: {}, // initial state
+            user: {
+               selectedCountriesArray: ["Zimbabwe"],
+               selectedCountriesTextField: ""
+            }
+            
+        },
+        mutations: {
+            setInitialState: function (state) {
+                Vue.set(
+                    state.initialState,
+                    "user",
+                    JSON.parse(
+                        JSON.stringify(state.user)
+                    )
+                );
+            },
+            setSelectedCountriesArray: function (state, data) {
+                Vue.set(
+                    state.user,
+                    "selectedCountriesArray",
+                    data.country
+                );
+                console.log("store - state.user.selectedCountriesArray - data: " + JSON.stringify(data));
+                console.log("store - state.user.selectedCountriesArray: " + JSON.stringify(state.user.selectedCountriesArray));
+            },
+            setSelectedCountriesTextField: function (state, data) {
+                Vue.set(
+                    state.user,
+                    "selectedCountriesTextField",
+                    data.country
+                );
+                //console.log("store - state.user.setSelectedCountriesTextField - data: " + JSON.stringify(data));
+                //console.log("store - state.user.setSelectedCountriesTextField: " + JSON.stringify(state.user.selectedCountriesTextField));
+            }
+        },
+        getters: {
+            selectedCountriesArray: function (state) {
+                return state.user.selectedCountriesArray;
+            },
+            selectedCountriesTextField: function (state) {
+                return state.user.selectedCountriesTextField;
+            }
+        }
+    };
+</script>

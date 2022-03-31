@@ -1,0 +1,17 @@
+<template>
+	<div id="AppPageHeadingOne" class="row" v-bind:class="{'page-heading': addDefaultMargin,'page-heading--extra-margin': addExtraMargin}">
+	    <div class="col-sm-12">
+	        <h1 class="text-center">{{headingText}}</h1>
+	        <AppBreadcrumbBar></AppBreadcrumbBar>
+	    </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		props: {
+			headingText: String,
+			addDefaultMargin: Boolean,
+			addExtraMargin: Boolean
+		}
+	};
+</script>

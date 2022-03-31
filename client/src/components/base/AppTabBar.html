@@ -1,0 +1,52 @@
+<template>
+	<div>
+		<div class="row">
+	        <div class="col-sm-12">
+	            <div class="mdc-tab-bar box-shadow--yccStyle opacity09 bg-light position-fixed zIndex500 topLeftRight0" role="tablist" v-bind:id="tabBarId">
+	                <div class="mdc-tab-scroller">
+	                    <div class="mdc-tab-scroller__scroll-area">
+	                        <div class="mdc-tab-scroller__scroll-content">
+	                            <button v-for="(tab, name, index) in tabBarData" class="mdc-tab" v-bind:class="{mdcTabActive: $route.path.toLowerCase().indexOf(tab.path)>=0}" v-on:click="$router.push(tab.path)" role="tab" v-bind:aria-selected="($route.path.toLowerCase().indexOf(tab.path)>=0) ? true : false" tabindex="0">
+	                                <span class="mdc-tab__content">
+	                                    <span class="mdc-tab__text-label">{{tab.label}}</span>
+	                                </span>
+	                                <span class="mdc-tab-indicator" v-bind:class="{mdcTabIndicatorActive: $route.path.toLowerCase().indexOf(tab.path)>=0}">
+	                                    <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+	                                </span>
+	                                <span class="mdc-tab__ripple"></span>
+	                            </button>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		props: {
+			tabBarData: Array | Object
+        },
+	    computed: {
+	    	tabBarId: function () {
+                var min = Math.ceil(100000);
+				var max = Math.floor(999999);
+				return "tabBarId-" +
+					Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+	    },
+	    mounted: function () {
+            this.$nextTick(function () {
+                mdc.autoInit();
+                var tabScroller = new mdc.tabScroller.MDCTabScroller(
+                    document.querySelector('.mdc-tab-scroller')
+                );
+                var tabBar = new mdc.tabBar.MDCTabBar(
+                    document.querySelector('.mdc-tab-bar')
+                );
+            });
+        }
+	};
+</script>

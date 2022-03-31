@@ -1,0 +1,122 @@
+<script type="text/javascript">
+    var imageCropperModule = {
+        strict: true,
+        state: {
+            initialState: {}, // initial state
+            imageCropper: {
+                listOfImageSizesForComponents: [
+                    {
+                        componentName: "Header",
+                        id: 1,
+                        width: 1800,
+                        height: 1213,
+                        aspectRatio: 1800 / 1213
+                    },
+                    {
+                        componentName: "Ribbon with CTAs",
+                        id: 2,
+                        width: 1920,
+                        height: 600,
+                        aspectRatio: 16 / 5
+                    },
+                    {
+                        componentName: "Key Messages (3 column)",
+                        id: 3,
+                        width: 818,
+                        height: 428,
+                        aspectRatio: 409 / 214
+                    },
+                    {
+                        componentName: "Dual Column - image",
+                        id: 4,
+                        width: 575,
+                        height: 355,
+                        aspectRatio: 115 / 71
+                    },
+                    {
+                        componentName: "Media Carousel Video - Overlay",
+                        id: 5,
+                        width: 996,
+                        height: 560,
+                        aspectRatio: 249 / 140
+                    },
+                    {
+                        componentName: "Media Carousel Image",
+                        id: 6,
+                        width: 996,
+                        height: 560,
+                        aspectRatio: 249 / 140
+                    },
+                    {
+                        componentName: "Single Video - Overlay",
+                        id: 7,
+                        width: 1250,
+                        height: 655,
+                        aspectRatio: 250 / 131
+                    },
+                    {
+                        componentName: "Single Image",
+                        id: 8,
+                        width: 1196,
+                        height: 654,
+                        aspectRatio: 598 / 327
+                    }
+                ],
+                imageDataUncropped: "",
+                imageDataCropped: "",
+                contentType: "",
+                componentId: "",
+                exportImageWidth: 0,
+                exportImageHeight: 0,
+                exportAspectRatio: 0,
+                sectionOneComplete: false,
+                sectionTwoComplete: false,
+                sectionThreeComplete: false
+            }
+        },
+        mutations: {
+            setInitialState: function (state) {
+                Vue.set(
+                    state.initialState,
+                    "imageCropper",
+                    JSON.parse(
+                        JSON.stringify(state.imageCropper)
+                    )
+                );
+            },
+            setImageCropper: function (state, data) {
+                var modifiedImageCropper = state.imageCropper;
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        modifiedImageCropper[key] = data[key];
+                    }
+                }
+                Vue.set(
+                    state,
+                    "imageCropper",
+                    modifiedImageCropper
+                );
+                //console.log("store - state.imageCropper: " + JSON.stringify(state.imageCropper));
+            },
+            deleteimageCropper: function (state) {
+                var initialState = JSON.parse(
+                    JSON.stringify(state.initialState.imageCropper)
+                );
+                for (var key in initialState) {
+                    if (initialState.hasOwnProperty(key)) {
+                        Vue.set(
+                            state.imageCropper,
+                            key,
+                            initialState[key]
+                        );
+                    }
+                }
+            }
+        },
+        getters: {
+            imageCropper: function (state) {
+                return state.imageCropper;
+            }
+        }
+    };
+</script>

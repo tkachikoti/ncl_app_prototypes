@@ -1,0 +1,66 @@
+<template>
+	<div class="row text-center">
+	    <div class="col-sm-12 center-block">
+	        <div class="mdc-snackbar">
+	            <div class="mdc-snackbar__surface">
+		            <div class="mdc-snackbar__label" role="status" aria-live="polite"></div>
+		            <div class="mdc-snackbar__actions">
+		                <button class="mdc-icon-button mdc-snackbar__dismiss" title="Dismiss"><i class="fas fa-times"></i></button>
+		            </div>
+	            </div>
+            </div>
+	    </div>
+	</div>
+</template>
+<script type="text/javascript">
+	module.export = {
+		mixins: [appMixin],
+		data: function () {
+	        return {
+	        	snackbar: {}
+	        };
+	    },
+	    computed: {
+	    	snackBarMessages: function () {
+    			return this.$store.getters.systemData.snackBarMessages;
+    		}
+	    },
+        watch: {
+            snackBarMessages: function (newValue, oldValue) {
+                var timeout = window.setTimeout(
+                    this.displayMessage,
+                    250, {
+                        text: newValue[0]
+                    }
+                );
+            }
+        },
+        methods: {
+            displayMessage: function (input) {
+                if (this.snackbar) {
+	    			if (!this.snackbar.isOpen) {
+		    			if (input.text) {
+                            //console.log("newValue: " + JSON.stringify(input.text));
+                            this.snackbar.labelText = "";
+                            this.snackbar.labelText = input.text;
+	                		this.snackbar.open();
+		    			}
+		    		}
+	    		}
+            }
+        },
+	    mounted: function () {
+            this.$nextTick(function () {
+                mdc.autoInit();
+                var vm = this;
+                const snackbarElement = document.querySelector(".mdc-snackbar");
+                this.snackbar = new mdc.snackbar.MDCSnackbar(snackbarElement);
+                this.snackbar.timeoutMs = 10000;
+		        snackbarElement.addEventListener("MDCSnackbar:closed", function (event) {
+                    vm.snackbar.labelText = "";
+		        	store.commit("deleteSnackBarMessages");
+		        });
+            });
+        }
+	};
+</script>
